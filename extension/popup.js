@@ -2,21 +2,37 @@ const urlInput = document.getElementById("urlInput");
 const checkButton = document.getElementById("checkButton");
 const result = document.getElementById("result");
 
-function checkUrl(url) {
-  try {
-    const checkedUrl = new URL(url);
+const apiEndpoint = "http://127.0.0.1:8787/v1/check";
 
-    if (
-      checkedUrl.protocol !== "http:" &&
-      checkedUrl.protocol !== "https:"
-    ) {
-      result.textContent = "Only HTTP and HTTPS links are supported.";
+async function checkUrl(url) {
+  result.textContent = "Checking URL...";
+  checkButton.disabled = true;
+
+  try {
+    const response = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        url: url
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      result.textContent = data.error || "Unable to check the URL.";
       return;
     }
 
-    result.textContent = `Valid URL: ${checkedUrl.hostname}`;
+    result.textContent =
+      `${data.message} Hostname: ${data.hostname}`;
   } catch {
-    result.textContent = "Please enter a valid URL.";
+    result.textContent =
+      "Unable to connect to the QR Guardian API.";
+  } finally {
+    checkButton.disabled = false;
   }
 }
 
