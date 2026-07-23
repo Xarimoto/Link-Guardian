@@ -2,7 +2,7 @@ const urlInput = document.getElementById("urlInput");
 const checkButton = document.getElementById("checkButton");
 const result = document.getElementById("result");
 
-const apiEndpoint = "http://127.0.0.1:8787/v1/check";
+const apiEndpoint = "https://qr-guardian-api.qr-guardian-hari.workers.dev/v1/check";
 
 async function checkUrl(url) {
   result.textContent = "Checking URL...";
