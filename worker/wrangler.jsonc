@@ -12,5 +12,15 @@
     "traces": {
       "enabled": false
     }
-  }
+  },
+  "ratelimits": [
+    {
+      "name": "URL_CHECK_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    }
+  ]
 }
