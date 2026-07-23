@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "QR Guardian",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Inspect links with VirusTotal, redirect analysis, and local URL security checks before opening them.",
   "permissions": [
     "contextMenus"
