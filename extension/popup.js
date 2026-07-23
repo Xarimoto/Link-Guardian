@@ -28,6 +28,24 @@ const destinationSection =
 const destinationValue =
   document.getElementById("destinationValue");
 
+const virusTotalSection =
+  document.getElementById("virusTotalSection");
+
+const analysisDateValue =
+  document.getElementById("analysisDateValue");
+
+const maliciousValue =
+  document.getElementById("maliciousValue");
+
+const suspiciousValue =
+  document.getElementById("suspiciousValue");
+
+const harmlessValue =
+  document.getElementById("harmlessValue");
+
+const undetectedValue =
+  document.getElementById("undetectedValue");
+
 const warningsSection =
   document.getElementById("warningsSection");
 
@@ -66,7 +84,7 @@ function clearWarnings() {
 function showWarnings(warnings) {
   clearWarnings();
 
-  if (!warnings.length) {
+  if (!Array.isArray(warnings) || warnings.length === 0) {
     return;
   }
 
@@ -88,6 +106,7 @@ function showDestination(
   if (!destinationUrl) {
     destinationSection.hidden = true;
     destinationValue.textContent = "";
+    destinationValue.removeAttribute("title");
     return;
   }
 
@@ -100,8 +119,138 @@ function showDestination(
   destinationSection.hidden = false;
 }
 
+function resetVirusTotalDetails() {
+  virusTotalSection.hidden = true;
+
+  maliciousValue.textContent = "0";
+  suspiciousValue.textContent = "0";
+  harmlessValue.textContent = "0";
+  undetectedValue.textContent = "0";
+
+  analysisDateValue.textContent = "";
+}
+
+function getVirusTotalData(data) {
+  return (
+    data.checks?.virusTotal ||
+    data.checks?.virustotal ||
+    data.virusTotal ||
+    data.virustotal ||
+    null
+  );
+}
+
+function getVirusTotalStats(virusTotalData) {
+  if (!virusTotalData) {
+    return null;
+  }
+
+  const nestedStats =
+    virusTotalData.stats ||
+    virusTotalData.analysisStats ||
+    virusTotalData.lastAnalysisStats ||
+    virusTotalData.data?.attributes?.last_analysis_stats;
+
+  if (nestedStats) {
+    return nestedStats;
+  }
+
+  const hasDirectStats =
+    virusTotalData.malicious !== undefined ||
+    virusTotalData.suspicious !== undefined ||
+    virusTotalData.harmless !== undefined ||
+    virusTotalData.undetected !== undefined;
+
+  return hasDirectStats
+    ? virusTotalData
+    : null;
+}
+
+function getAnalysisDate(virusTotalData) {
+  if (!virusTotalData) {
+    return null;
+  }
+
+  return (
+    virusTotalData.analysisDate ||
+    virusTotalData.lastAnalysisDate ||
+    virusTotalData.lastAnalysisTimestamp ||
+    virusTotalData.data?.attributes?.last_analysis_date ||
+    null
+  );
+}
+
+function formatAnalysisDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  let date;
+
+  if (
+    typeof value === "number" &&
+    value < 1000000000000
+  ) {
+    date = new Date(value * 1000);
+  } else {
+    date = new Date(value);
+  }
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString(
+    undefined,
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    }
+  );
+}
+
+function showVirusTotalDetails(data) {
+  resetVirusTotalDetails();
+
+  const virusTotalData =
+    getVirusTotalData(data);
+
+  const stats =
+    getVirusTotalStats(virusTotalData);
+
+  if (!stats) {
+    return;
+  }
+
+  maliciousValue.textContent =
+    String(stats.malicious ?? 0);
+
+  suspiciousValue.textContent =
+    String(stats.suspicious ?? 0);
+
+  harmlessValue.textContent =
+    String(stats.harmless ?? 0);
+
+  undetectedValue.textContent =
+    String(stats.undetected ?? 0);
+
+  const formattedDate =
+    formatAnalysisDate(
+      getAnalysisDate(virusTotalData)
+    );
+
+  analysisDateValue.textContent =
+    formattedDate
+      ? `Analyzed ${formattedDate}`
+      : "";
+
+  virusTotalSection.hidden = false;
+}
+
 function resetOpenButton() {
   approvedUrl = "";
+
   openButton.hidden = true;
   openButton.textContent = "Open Website";
   openButton.className = "";
@@ -122,6 +271,7 @@ function showCheckingState(url) {
     `Checking ${url}`;
 
   showDestination(null, null);
+  resetVirusTotalDetails();
   clearWarnings();
   resetOpenButton();
 }
@@ -140,6 +290,7 @@ function showError(message) {
   resultMessage.textContent = message;
 
   showDestination(null, null);
+  resetVirusTotalDetails();
   clearWarnings();
   resetOpenButton();
 }
@@ -153,7 +304,8 @@ function configureOpenButton(
 
   if (
     status === "dangerous" ||
-    status === "unavailable"
+    status === "unavailable" ||
+    !websiteToOpen
   ) {
     return;
   }
@@ -207,6 +359,7 @@ function showResult(data) {
     destinationHostname
   );
 
+  showVirusTotalDetails(data);
   showWarnings(warnings);
 
   switch (data.status) {
@@ -295,6 +448,7 @@ async function checkUrl(rawUrl) {
         data.error ||
           "Unable to check the URL."
       );
+
       return;
     }
 
