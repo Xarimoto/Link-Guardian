@@ -21,6 +21,8 @@ async function checkUrl(url) {
 
   approvedUrl = "";
   openButton.hidden = true;
+  openButton.textContent = "Open Website";
+  openButton.className = "";
 
   showResult("Checking URL...", "checking");
   checkButton.disabled = true;
@@ -65,18 +67,24 @@ async function checkUrl(url) {
       case "suspicious":
         showResult(message, "suspicious");
         approvedUrl = data.url;
+        openButton.textContent = "Proceed Anyway";
+        openButton.className = "proceed";
         openButton.hidden = false;
         break;
 
       case "no_known_threats":
         showResult(message, "safe");
         approvedUrl = data.url;
+        openButton.textContent = "Open Website";
+        openButton.className = "safe-open";
         openButton.hidden = false;
         break;
 
       case "unknown":
         showResult(message, "unknown");
         approvedUrl = data.url;
+        openButton.textContent = "Proceed Anyway";
+        openButton.className = "proceed";
         openButton.hidden = false;
         break;
 

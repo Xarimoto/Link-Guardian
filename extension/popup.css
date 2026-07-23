@@ -78,10 +78,18 @@ button:disabled {
 #result.unavailable {
   color: #5b6475;
 }
-#openButton {
+#openButton.safe-open {
   background: #16a34a;
 }
 
-#openButton:hover {
+#openButton.safe-open:hover {
   background: #15803d;
+}
+
+#openButton.proceed {
+  background: #d97706;
+}
+
+#openButton.proceed:hover {
+  background: #b45309;
 }
