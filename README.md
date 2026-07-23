@@ -4,16 +4,16 @@ QR Guardian is a Chrome extension that inspects links before opening them.
 
 It combines:
 
-* VirusTotal reputation checks
-* Shortened-link destination resolution
-* Redirect-chain analysis
-* Local URL security heuristics
-* Clear Safe, Suspicious, Unknown, and Dangerous verdicts
+- VirusTotal reputation checks
+- Shortened-link destination resolution
+- Redirect-chain analysis
+- Local URL security heuristics
+- Clear Safe, Suspicious, Unknown, and Dangerous verdicts
 
 ## Current Version
 
-* Chrome extension: `0.2.0`
-* Cloudflare Worker API: `0.6.2`
+- Chrome extension: `0.3.0`
+- Cloudflare Worker API: `0.6.2`
 
 ## Current Features
 
@@ -21,10 +21,10 @@ It combines:
 
 Users can:
 
-* Paste a URL into the extension
-* Enter a domain without a protocol, such as `cnn.com`
-* Press Enter or click **Check URL**
-* Right-click a webpage link and select **Check link with QR Guardian**
+- Paste a URL into the extension
+- Enter a domain without a protocol, such as `cnn.com`
+- Press Enter or click **Check URL**
+- Right-click a webpage link and select **Check link with QR Guardian**
 
 ### VirusTotal Integration
 
@@ -36,47 +36,66 @@ If VirusTotal has no report for an exact normal URL, QR Guardian checks the webs
 
 Homepage fallback is disabled for URL-shortening services to prevent misleading results.
 
+When a VirusTotal report is available, QR Guardian displays:
+
+- Malicious detections
+- Suspicious detections
+- Harmless detections
+- Undetected results
+- Last analysis date
+
 ### URL Shortener Analysis
 
 QR Guardian recognizes common shortening services, including:
 
-* `bit.ly`
-* `tinyurl.com`
-* `t.co`
-* `goo.gl`
-* `ow.ly`
-* `buff.ly`
-* `is.gd`
-* `rebrand.ly`
-* `rb.gy`
-* `cutt.ly`
-* `tiny.cc`
-* `lnkd.in`
+- `bit.ly`
+- `tinyurl.com`
+- `t.co`
+- `goo.gl`
+- `ow.ly`
+- `buff.ly`
+- `is.gd`
+- `rebrand.ly`
+- `rb.gy`
+- `cutt.ly`
+- `tiny.cc`
+- `lnkd.in`
 
 For shortened links, QR Guardian:
 
-* Resolves up to five redirects
-* Displays the final destination
-* Checks the resolved destination with VirusTotal
-* Opens the resolved destination instead of the shortened URL
-* Blocks private, local, unsupported, or credential-containing redirect targets
-* Warns about HTTPS-to-HTTP downgrades
-* Warns about redirect chains crossing multiple domains
-* Warns when one shortener redirects to another shortener
+- Resolves up to five redirects
+- Displays the final destination
+- Checks the resolved destination with VirusTotal
+- Opens the resolved destination instead of the shortened URL
+- Blocks private, local, unsupported, or credential-containing redirect targets
+- Warns about HTTPS-to-HTTP downgrades
+- Warns about redirect chains crossing multiple domains
+- Warns when one shortener redirects to another shortener
 
 ### Local URL Heuristics
 
 QR Guardian warns when a URL:
 
-* Uses an IP address instead of a domain
-* Contains punycode characters
-* Contains embedded username or password information
-* Uses an unusual port
-* Contains an unusually large number of subdomains
-* Uses a URL-shortening service
-* Redirects from HTTPS to HTTP
-* Passes through multiple unrelated domains
-* Redirects to another URL shortener
+- Uses an IP address instead of a domain
+- Contains punycode characters
+- Contains embedded username or password information
+- Uses an unusual port
+- Contains an unusually large number of subdomains
+- Uses a URL-shortening service
+- Redirects from HTTPS to HTTP
+- Passes through multiple unrelated domains
+- Redirects to another URL shortener
+
+### Extension Branding
+
+QR Guardian includes dedicated Chrome extension icons in the following sizes:
+
+- 16 × 16
+- 32 × 32
+- 48 × 48
+- 128 × 128
+
+The icons are used in the Chrome toolbar, extension-management page, and extension metadata.
 
 ## Verdicts
 
@@ -90,11 +109,11 @@ The **Open Website** button is available.
 
 Shown in orange when QR Guardian detects warning signs, such as:
 
-* A shortened URL
-* An unusual redirect chain
-* An HTTPS-to-HTTP redirect
-* Suspicious URL structure
-* A suspicious VirusTotal result
+- A shortened URL
+- An unusual redirect chain
+- An HTTPS-to-HTTP redirect
+- Suspicious URL structure
+- A suspicious VirusTotal result
 
 The user may select **Proceed Anyway** or **Proceed to Destination**.
 
@@ -108,9 +127,9 @@ The user may proceed manually.
 
 Shown in red when:
 
-* VirusTotal reports malicious detections
-* A redirect targets a private or unsupported destination
-* Another high-risk condition blocks opening
+- VirusTotal reports malicious detections
+- A redirect targets a private or unsupported destination
+- Another high-risk condition blocks opening
 
 QR Guardian does not display an open button for dangerous results.
 
@@ -120,6 +139,11 @@ QR Guardian does not display an open button for dangerous results.
 QR-Guardian/
 │
 ├── extension/
+│   ├── icons/
+│   │   ├── icon16.png
+│   │   ├── icon32.png
+│   │   ├── icon48.png
+│   │   └── icon128.png
 │   ├── background.js
 │   ├── manifest.json
 │   ├── popup.css
@@ -139,13 +163,13 @@ QR-Guardian/
 
 ## Development Requirements
 
-* Google Chrome
-* Visual Studio Code
-* Git for Windows
-* Node.js
-* npm
-* Cloudflare account
-* VirusTotal API key
+- Google Chrome
+- Visual Studio Code
+- Git for Windows
+- Node.js
+- npm
+- Cloudflare account
+- VirusTotal API key
 
 macOS is not required for Chrome extension development.
 
@@ -258,7 +282,7 @@ Invoke-RestMethod `
   -Method Post `
   -ContentType "application/json" `
   -Body '{"url":"https://example.com"}' |
-  ConvertTo-Json -Depth 8
+  ConvertTo-Json -Depth 10
 ```
 
 ## Git Workflow
@@ -284,28 +308,27 @@ git commit -m "Describe the completed change"
 
 ## Security Notes
 
-* API keys remain in Cloudflare Worker secrets.
-* The Chrome extension never receives the VirusTotal key.
-* Only HTTP and HTTPS links are supported.
-* URLs longer than 4,096 characters are rejected.
-* Redirect resolution is limited to five hops.
-* Redirect requests time out after five seconds.
-* Local and private redirect destinations are blocked.
-* Dangerous results cannot be opened through QR Guardian.
-* Unknown URLs are not automatically submitted to VirusTotal.
+- API keys remain in Cloudflare Worker secrets.
+- The Chrome extension never receives the VirusTotal key.
+- Only HTTP and HTTPS links are supported.
+- URLs longer than 4,096 characters are rejected.
+- Redirect resolution is limited to five hops.
+- Redirect requests time out after five seconds.
+- Local and private redirect destinations are blocked.
+- Dangerous results cannot be opened through QR Guardian.
+- Unknown URLs are not automatically submitted to VirusTotal.
 
 ## Planned Improvements
 
 Potential future improvements include:
 
-* QR-code decoding from images
-* Right-click QR-image scanning
-* Additional threat-intelligence providers
-* Better domain-age and reputation checks
-* Dark mode
-* Extension icons and branding
-* Improved result details
-* Privacy documentation
-* Optional scan history
-* Chrome Web Store packaging
-* Shared backend support for a future iOS app
+- QR-code decoding from images
+- Right-click QR-image scanning
+- Additional threat-intelligence providers
+- Better domain-age and reputation checks
+- Dark mode
+- Improved result details
+- Privacy documentation
+- Optional scan history
+- Chrome Web Store packaging
+- Shared backend support for a future iOS app
