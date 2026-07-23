@@ -39,13 +39,14 @@ input {
 }
 
 .brand-icon {
-  display: grid;
   width: 44px;
   height: 44px;
-  place-items: center;
+  flex: 0 0 44px;
   border-radius: 12px;
-  background: #e8eefc;
-  font-size: 24px;
+  object-fit: cover;
+  box-shadow:
+    0 4px 12px
+    rgba(37, 99, 235, 0.2);
 }
 
 h1 {
