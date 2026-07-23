@@ -225,6 +225,42 @@ function mergeHeuristicResults(...results) {
   };
 }
 
+function analyzeRedirectHeuristics(redirectResolution) {
+  const warnings = [];
+
+  const redirectChain =
+    redirectResolution?.redirectChain ?? [];
+
+  const hasHttpsDowngrade =
+    redirectChain.some((redirect) => {
+      try {
+        const fromUrl = new URL(redirect.from);
+        const toUrl = new URL(redirect.to);
+
+        return (
+          fromUrl.protocol === "https:" &&
+          toUrl.protocol === "http:"
+        );
+      } catch {
+        return false;
+      }
+    });
+
+  if (hasHttpsDowngrade) {
+    warnings.push(
+      "The link redirects from secure HTTPS to insecure HTTP."
+    );
+  }
+
+  return {
+    status: warnings.length > 0 ? "warning" : "clear",
+    warningCount: warnings.length,
+    warnings,
+    usesUrlShortener: false,
+    hasHttpsDowngrade
+  };
+}
+
 async function fetchWithTimeout(url, method) {
   const controller = new AbortController();
 
@@ -677,7 +713,7 @@ export default {
       return jsonResponse({
         service: "QR Guardian API",
         status: "online",
-        version: "0.6.0"
+        version: "0.6.1"
       });
     }
 
@@ -817,10 +853,16 @@ export default {
         }
       }
 
+      const redirectHeuristics =
+        analyzeRedirectHeuristics(
+          redirectResolution
+        );
+
       const heuristicResult =
         mergeHeuristicResults(
           originalHeuristics,
-          destinationHeuristics
+          destinationHeuristics,
+          redirectHeuristics
         );
 
       const virusTotalResult =
@@ -854,6 +896,7 @@ export default {
             : null,
         checks: {
           redirectResolution,
+          redirectHeuristics,
           heuristics: heuristicResult,
           virusTotal: virusTotalResult,
           virusTotalOriginal:
