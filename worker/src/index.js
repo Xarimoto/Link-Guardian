@@ -252,12 +252,64 @@ function analyzeRedirectHeuristics(redirectResolution) {
     );
   }
 
+  const redirectHostnames = [
+    ...new Set(
+      redirectChain.flatMap((redirect) => {
+        try {
+          const fromHostname = new URL(redirect.from)
+            .hostname
+            .toLowerCase()
+            .replace(/^www\./, "");
+
+          const toHostname = new URL(redirect.to)
+            .hostname
+            .toLowerCase()
+            .replace(/^www\./, "");
+
+          return [fromHostname, toHostname];
+        } catch {
+          return [];
+        }
+      })
+    )
+  ];
+
+  if (redirectHostnames.length > 2) {
+    warnings.push(
+      "The redirect chain passes through multiple different domains before reaching its destination."
+    );
+  }
+
+  const finalRedirect = redirectChain.at(-1);
+
+  let redirectsToAnotherShortener = false;
+
+  if (finalRedirect) {
+    try {
+      const finalHostname =
+        new URL(finalRedirect.to).hostname;
+
+      redirectsToAnotherShortener =
+        isUrlShortener(finalHostname);
+    } catch {
+      redirectsToAnotherShortener = false;
+    }
+  }
+
+  if (redirectsToAnotherShortener) {
+    warnings.push(
+      "The link redirects to another URL-shortening service."
+    );
+  }
+
   return {
     status: warnings.length > 0 ? "warning" : "clear",
     warningCount: warnings.length,
     warnings,
     usesUrlShortener: false,
-    hasHttpsDowngrade
+    hasHttpsDowngrade,
+    redirectHostnames,
+    redirectsToAnotherShortener
   };
 }
 
@@ -713,7 +765,7 @@ export default {
       return jsonResponse({
         service: "QR Guardian API",
         status: "online",
-        version: "0.6.1"
+        version: "0.6.2"
       });
     }
 
