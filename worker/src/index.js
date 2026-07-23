@@ -28,7 +28,7 @@ function createVirusTotalUrlId(url) {
     .replace(/=+$/g, "");
 }
 
-async function checkVirusTotal(url, apiKey) {
+async function getVirusTotalReport(url, apiKey) {
   const urlId = createVirusTotalUrlId(url);
 
   const response = await fetch(
@@ -44,29 +44,31 @@ async function checkVirusTotal(url, apiKey) {
 
   if (response.status === 404) {
     return {
-      status: "unknown",
-      message: "VirusTotal has no existing report for this URL.",
-      found: false
+      type: "not_found"
     };
   }
 
   if (response.status === 429) {
     return {
-      status: "unavailable",
-      message: "The VirusTotal request limit has been reached.",
-      found: false
+      type: "unavailable",
+      message: "The VirusTotal request limit has been reached."
     };
   }
 
   if (!response.ok) {
     return {
-      status: "unavailable",
-      message: `VirusTotal returned error ${response.status}.`,
-      found: false
+      type: "unavailable",
+      message: `VirusTotal returned error ${response.status}.`
     };
   }
 
-  const report = await response.json();
+  return {
+    type: "found",
+    report: await response.json()
+  };
+}
+
+function formatVirusTotalReport(report, reportUrl, usedHomepageFallback) {
   const attributes = report.data?.attributes ?? {};
   const statistics = attributes.last_analysis_stats ?? {};
 
@@ -81,28 +83,89 @@ async function checkVirusTotal(url, apiKey) {
   if (malicious > 0) {
     status = "dangerous";
     message =
-      `VirusTotal detected this URL as malicious ` +
-      `with ${malicious} detection(s).`;
+      `VirusTotal detected ${malicious} malicious result(s).`;
   } else if (suspicious > 0) {
     status = "suspicious";
     message =
-      `VirusTotal reported ${suspicious} suspicious detection(s).`;
+      `VirusTotal reported ${suspicious} suspicious result(s).`;
   } else {
     status = "no_known_threats";
-    message =
-      "No known threats were found in the latest VirusTotal report.";
+
+    if (usedHomepageFallback) {
+      message =
+        "No exact URL report was found. The website homepage report has no known threats.";
+    } else {
+      message =
+        "No known threats were found in the latest VirusTotal report.";
+    }
   }
 
   return {
     status,
     message,
     found: true,
+    usedHomepageFallback,
+    reportUrl,
     malicious,
     suspicious,
     harmless,
     undetected,
     lastAnalysisDate: attributes.last_analysis_date ?? null,
-    finalUrl: attributes.last_final_url ?? url
+    finalUrl: attributes.last_final_url ?? reportUrl
+  };
+}
+
+async function checkVirusTotal(url, apiKey) {
+  const exactResult = await getVirusTotalReport(url, apiKey);
+
+  if (exactResult.type === "found") {
+    return formatVirusTotalReport(
+      exactResult.report,
+      url,
+      false
+    );
+  }
+
+  if (exactResult.type === "unavailable") {
+    return {
+      status: "unavailable",
+      message: exactResult.message,
+      found: false
+    };
+  }
+
+  const parsedUrl = new URL(url);
+  const homepageUrl = `${parsedUrl.origin}/`;
+
+  if (homepageUrl !== url) {
+    const homepageResult = await getVirusTotalReport(
+      homepageUrl,
+      apiKey
+    );
+
+    if (homepageResult.type === "found") {
+      return formatVirusTotalReport(
+        homepageResult.report,
+        homepageUrl,
+        true
+      );
+    }
+
+    if (homepageResult.type === "unavailable") {
+      return {
+        status: "unavailable",
+        message: homepageResult.message,
+        found: false
+      };
+    }
+  }
+
+  return {
+    status: "unknown",
+    message:
+      "VirusTotal has no existing report for this URL or its homepage.",
+    found: false,
+    usedHomepageFallback: false
   };
 }
 
@@ -121,11 +184,14 @@ export default {
       return jsonResponse({
         service: "QR Guardian API",
         status: "online",
-        version: "0.2.0"
+        version: "0.3.0"
       });
     }
 
-    if (request.method === "POST" && requestUrl.pathname === "/v1/check") {
+    if (
+      request.method === "POST" &&
+      requestUrl.pathname === "/v1/check"
+    ) {
       let body;
 
       try {
