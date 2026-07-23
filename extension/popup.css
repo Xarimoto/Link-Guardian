@@ -78,3 +78,10 @@ button:disabled {
 #result.unavailable {
   color: #5b6475;
 }
+#openButton {
+  background: #16a34a;
+}
+
+#openButton:hover {
+  background: #15803d;
+}
