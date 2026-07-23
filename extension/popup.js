@@ -13,11 +13,32 @@ function showResult(message, status = "") {
   result.className = status;
 }
 
-async function checkUrl(url) {
+function normalizeUrlInput(value) {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  const hasProtocol =
+    /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmedValue);
+
+  if (!hasProtocol) {
+    return `https://${trimmedValue}`;
+  }
+
+  return trimmedValue;
+}
+
+async function checkUrl(rawUrl) {
+  const url = normalizeUrlInput(rawUrl);
+
   if (!url) {
     showResult("Please enter a URL.", "error");
     return;
   }
+
+  urlInput.value = url;
 
   approvedUrl = "";
   openButton.hidden = true;
@@ -103,7 +124,7 @@ async function checkUrl(url) {
 }
 
 checkButton.addEventListener("click", () => {
-  checkUrl(urlInput.value.trim());
+  checkUrl(urlInput.value);
 });
 
 openButton.addEventListener("click", () => {
@@ -118,7 +139,7 @@ openButton.addEventListener("click", () => {
 
 urlInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
-    checkUrl(urlInput.value.trim());
+    checkUrl(urlInput.value);
   }
 });
 
