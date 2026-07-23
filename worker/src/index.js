@@ -4,6 +4,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type"
 };
 
+const urlShortenerDomains = [
+  "bit.ly",
+  "tinyurl.com",
+  "t.co",
+  "goo.gl",
+  "ow.ly",
+  "buff.ly",
+  "is.gd",
+  "rebrand.ly",
+  "rb.gy",
+  "cutt.ly",
+  "tiny.cc",
+  "lnkd.in"
+];
+
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
@@ -28,9 +43,19 @@ function createVirusTotalUrlId(url) {
     .replace(/=+$/g, "");
 }
 
+function isUrlShortener(hostname) {
+  return urlShortenerDomains.some((domain) => {
+    return (
+      hostname === domain ||
+      hostname.endsWith(`.${domain}`)
+    );
+  });
+}
+
 function analyzeUrlHeuristics(url) {
   const warnings = [];
   const hostname = url.hostname.toLowerCase();
+  const usesUrlShortener = isUrlShortener(hostname);
 
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
     warnings.push(
@@ -72,10 +97,17 @@ function analyzeUrlHeuristics(url) {
     );
   }
 
+  if (usesUrlShortener) {
+    warnings.push(
+      "The link uses a URL-shortening service that hides the final destination."
+    );
+  }
+
   return {
     status: warnings.length > 0 ? "warning" : "clear",
     warningCount: warnings.length,
-    warnings
+    warnings,
+    usesUrlShortener
   };
 }
 
@@ -173,7 +205,11 @@ function formatVirusTotalReport(
   };
 }
 
-async function checkVirusTotal(url, apiKey) {
+async function checkVirusTotal(
+  url,
+  apiKey,
+  skipHomepageFallback
+) {
   const exactResult = await getVirusTotalReport(
     url,
     apiKey
@@ -192,6 +228,16 @@ async function checkVirusTotal(url, apiKey) {
       status: "unavailable",
       message: exactResult.message,
       found: false
+    };
+  }
+
+  if (skipHomepageFallback) {
+    return {
+      status: "unknown",
+      message:
+        "VirusTotal has no exact report for this shortened URL.",
+      found: false,
+      usedHomepageFallback: false
     };
   }
 
@@ -282,7 +328,7 @@ export default {
       return jsonResponse({
         service: "QR Guardian API",
         status: "online",
-        version: "0.4.0"
+        version: "0.5.1"
       });
     }
 
@@ -366,7 +412,8 @@ export default {
       const virusTotalResult =
         await checkVirusTotal(
           checkedUrl.href,
-          env.VIRUSTOTAL_API_KEY
+          env.VIRUSTOTAL_API_KEY,
+          heuristicResult.usesUrlShortener
         );
 
       const overallResult = createOverallResult(
