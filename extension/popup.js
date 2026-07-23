@@ -72,13 +72,27 @@ async function checkUrl(rawUrl) {
     const warnings =
       data.checks?.heuristics?.warnings ?? [];
 
+    const destinationUrl =
+      data.destinationUrl || null;
+
+    const destinationHostname =
+      data.destinationHostname || null;
+
     let message = data.message;
 
     if (warnings.length > 0) {
       message += ` Warning: ${warnings.join(" ")}`;
     }
 
-    message += ` Hostname: ${data.hostname}`;
+    message += ` Hostname: ${data.hostname}.`;
+
+    if (destinationHostname) {
+      message +=
+        ` Resolved destination: ${destinationHostname}.`;
+    }
+
+    const websiteToOpen =
+      destinationUrl || data.url;
 
     switch (data.status) {
       case "dangerous":
@@ -87,24 +101,30 @@ async function checkUrl(rawUrl) {
 
       case "suspicious":
         showResult(message, "suspicious");
-        approvedUrl = data.url;
-        openButton.textContent = "Proceed Anyway";
+        approvedUrl = websiteToOpen;
+        openButton.textContent = destinationUrl
+          ? "Proceed to Destination"
+          : "Proceed Anyway";
         openButton.className = "proceed";
         openButton.hidden = false;
         break;
 
       case "no_known_threats":
         showResult(message, "safe");
-        approvedUrl = data.url;
-        openButton.textContent = "Open Website";
+        approvedUrl = websiteToOpen;
+        openButton.textContent = destinationUrl
+          ? "Open Destination"
+          : "Open Website";
         openButton.className = "safe-open";
         openButton.hidden = false;
         break;
 
       case "unknown":
         showResult(message, "unknown");
-        approvedUrl = data.url;
-        openButton.textContent = "Proceed Anyway";
+        approvedUrl = websiteToOpen;
+        openButton.textContent = destinationUrl
+          ? "Proceed to Destination"
+          : "Proceed Anyway";
         openButton.className = "proceed";
         openButton.hidden = false;
         break;

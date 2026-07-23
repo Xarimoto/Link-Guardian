@@ -19,6 +19,17 @@ const urlShortenerDomains = [
   "lnkd.in"
 ];
 
+const redirectStatusCodes = new Set([
+  301,
+  302,
+  303,
+  307,
+  308
+]);
+
+const maxRedirectHops = 5;
+const redirectTimeoutMs = 5000;
+
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
@@ -44,12 +55,96 @@ function createVirusTotalUrlId(url) {
 }
 
 function isUrlShortener(hostname) {
+  const normalizedHostname = hostname.toLowerCase();
+
   return urlShortenerDomains.some((domain) => {
     return (
-      hostname === domain ||
-      hostname.endsWith(`.${domain}`)
+      normalizedHostname === domain ||
+      normalizedHostname.endsWith(`.${domain}`)
     );
   });
+}
+
+function isPrivateOrReservedIpv4(hostname) {
+  const octets = hostname.split(".").map(Number);
+
+  if (
+    octets.length !== 4 ||
+    octets.some((octet) => {
+      return (
+        !Number.isInteger(octet) ||
+        octet < 0 ||
+        octet > 255
+      );
+    })
+  ) {
+    return false;
+  }
+
+  const [a, b] = octets;
+
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    a >= 224
+  );
+}
+
+function isPrivateOrReservedIpv6(hostname) {
+  const normalizedHostname = hostname
+    .replace(/^\[/, "")
+    .replace(/\]$/, "")
+    .toLowerCase();
+
+  if (!normalizedHostname.includes(":")) {
+    return false;
+  }
+
+  return (
+    normalizedHostname === "::" ||
+    normalizedHostname === "::1" ||
+    normalizedHostname.startsWith("fc") ||
+    normalizedHostname.startsWith("fd") ||
+    normalizedHostname.startsWith("fe8") ||
+    normalizedHostname.startsWith("fe9") ||
+    normalizedHostname.startsWith("fea") ||
+    normalizedHostname.startsWith("feb")
+  );
+}
+
+function isUnsafeRedirectTarget(url) {
+  const hostname = url.hostname.toLowerCase();
+
+  if (
+    url.protocol !== "http:" &&
+    url.protocol !== "https:"
+  ) {
+    return true;
+  }
+
+  if (url.username || url.password) {
+    return true;
+  }
+
+  if (
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname.endsWith(".local") ||
+    hostname.endsWith(".internal")
+  ) {
+    return true;
+  }
+
+  return (
+    isPrivateOrReservedIpv4(hostname) ||
+    isPrivateOrReservedIpv6(hostname)
+  );
 }
 
 function analyzeUrlHeuristics(url) {
@@ -111,6 +206,190 @@ function analyzeUrlHeuristics(url) {
   };
 }
 
+function mergeHeuristicResults(...results) {
+  const warnings = [
+    ...new Set(
+      results.flatMap((result) => {
+        return result?.warnings ?? [];
+      })
+    )
+  ];
+
+  return {
+    status: warnings.length > 0 ? "warning" : "clear",
+    warningCount: warnings.length,
+    warnings,
+    usesUrlShortener: results.some((result) => {
+      return result?.usesUrlShortener === true;
+    })
+  };
+}
+
+async function fetchWithTimeout(url, method) {
+  const controller = new AbortController();
+
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, redirectTimeoutMs);
+
+  try {
+    return await fetch(url, {
+      method,
+      redirect: "manual",
+      signal: controller.signal,
+      headers: {
+        Accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+        "User-Agent": "QR-Guardian-Link-Resolver/0.6"
+      }
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function requestRedirectStep(url) {
+  let response = await fetchWithTimeout(url, "HEAD");
+
+  if (
+    response.status === 405 ||
+    response.status === 501
+  ) {
+    response.body?.cancel();
+    response = await fetchWithTimeout(url, "GET");
+  }
+
+  return response;
+}
+
+async function resolveShortenedUrl(startUrl) {
+  let currentUrl = new URL(startUrl.href);
+  const redirectChain = [];
+
+  for (
+    let hop = 0;
+    hop < maxRedirectHops;
+    hop += 1
+  ) {
+    if (isUnsafeRedirectTarget(currentUrl)) {
+      return {
+        status: "blocked",
+        message:
+          "QR Guardian blocked a redirect toward a private or unsupported destination.",
+        resolved: false,
+        finalUrl: null,
+        finalHostname: null,
+        redirectChain
+      };
+    }
+
+    let response;
+
+    try {
+      response = await requestRedirectStep(
+        currentUrl.href
+      );
+    } catch {
+      return {
+        status: "unresolved",
+        message:
+          "QR Guardian could not resolve the shortened link safely.",
+        resolved: false,
+        finalUrl: null,
+        finalHostname: null,
+        redirectChain
+      };
+    }
+
+    const location =
+      response.headers.get("Location");
+
+    const isRedirect =
+      redirectStatusCodes.has(response.status);
+
+    response.body?.cancel();
+
+    if (!isRedirect || !location) {
+      const resolved =
+        currentUrl.href !== startUrl.href;
+
+      return {
+        status: resolved
+          ? "resolved"
+          : "unresolved",
+        message: resolved
+          ? "QR Guardian resolved the shortened link destination."
+          : "The shortened link did not expose a redirect destination.",
+        resolved,
+        finalUrl: resolved
+          ? currentUrl.href
+          : null,
+        finalHostname: resolved
+          ? currentUrl.hostname
+          : null,
+        redirectChain
+      };
+    }
+
+    let nextUrl;
+
+    try {
+      nextUrl = new URL(location, currentUrl);
+    } catch {
+      return {
+        status: "unresolved",
+        message:
+          "The shortened link returned an invalid redirect destination.",
+        resolved: false,
+        finalUrl: null,
+        finalHostname: null,
+        redirectChain
+      };
+    }
+
+    if (isUnsafeRedirectTarget(nextUrl)) {
+      return {
+        status: "blocked",
+        message:
+          "QR Guardian blocked a redirect toward a private or unsupported destination.",
+        resolved: false,
+        finalUrl: null,
+        finalHostname: null,
+        redirectChain
+      };
+    }
+
+    redirectChain.push({
+      statusCode: response.status,
+      from: currentUrl.href,
+      to: nextUrl.href
+    });
+
+    if (nextUrl.href === currentUrl.href) {
+      return {
+        status: "unresolved",
+        message:
+          "The shortened link returned a redirect loop.",
+        resolved: false,
+        finalUrl: null,
+        finalHostname: null,
+        redirectChain
+      };
+    }
+
+    currentUrl = nextUrl;
+  }
+
+  return {
+    status: "unresolved",
+    message:
+      `The shortened link exceeded the ${maxRedirectHops}-redirect safety limit.`,
+    resolved: false,
+    finalUrl: null,
+    finalHostname: null,
+    redirectChain
+  };
+}
+
 async function getVirusTotalReport(url, apiKey) {
   const urlId = createVirusTotalUrlId(url);
 
@@ -134,14 +413,16 @@ async function getVirusTotalReport(url, apiKey) {
   if (response.status === 429) {
     return {
       type: "unavailable",
-      message: "The VirusTotal request limit has been reached."
+      message:
+        "The VirusTotal request limit has been reached."
     };
   }
 
   if (!response.ok) {
     return {
       type: "unavailable",
-      message: `VirusTotal returned error ${response.status}.`
+      message:
+        `VirusTotal returned error ${response.status}.`
     };
   }
 
@@ -156,13 +437,23 @@ function formatVirusTotalReport(
   reportUrl,
   usedHomepageFallback
 ) {
-  const attributes = report.data?.attributes ?? {};
-  const statistics = attributes.last_analysis_stats ?? {};
+  const attributes =
+    report.data?.attributes ?? {};
 
-  const malicious = statistics.malicious ?? 0;
-  const suspicious = statistics.suspicious ?? 0;
-  const harmless = statistics.harmless ?? 0;
-  const undetected = statistics.undetected ?? 0;
+  const statistics =
+    attributes.last_analysis_stats ?? {};
+
+  const malicious =
+    statistics.malicious ?? 0;
+
+  const suspicious =
+    statistics.suspicious ?? 0;
+
+  const harmless =
+    statistics.harmless ?? 0;
+
+  const undetected =
+    statistics.undetected ?? 0;
 
   let status;
   let message;
@@ -210,10 +501,8 @@ async function checkVirusTotal(
   apiKey,
   skipHomepageFallback
 ) {
-  const exactResult = await getVirusTotalReport(
-    url,
-    apiKey
-  );
+  const exactResult =
+    await getVirusTotalReport(url, apiKey);
 
   if (exactResult.type === "found") {
     return formatVirusTotalReport(
@@ -245,10 +534,11 @@ async function checkVirusTotal(
   const homepageUrl = `${parsedUrl.origin}/`;
 
   if (homepageUrl !== url) {
-    const homepageResult = await getVirusTotalReport(
-      homepageUrl,
-      apiKey
-    );
+    const homepageResult =
+      await getVirusTotalReport(
+        homepageUrl,
+        apiKey
+      );
 
     if (homepageResult.type === "found") {
       return formatVirusTotalReport(
@@ -258,7 +548,9 @@ async function checkVirusTotal(
       );
     }
 
-    if (homepageResult.type === "unavailable") {
+    if (
+      homepageResult.type === "unavailable"
+    ) {
       return {
         status: "unavailable",
         message: homepageResult.message,
@@ -276,25 +568,82 @@ async function checkVirusTotal(
   };
 }
 
+function getVirusTotalSeverity(status) {
+  const severity = {
+    unavailable: 0,
+    unknown: 1,
+    no_known_threats: 2,
+    suspicious: 3,
+    dangerous: 4
+  };
+
+  return severity[status] ?? 0;
+}
+
+function chooseVirusTotalResult(
+  originalResult,
+  destinationResult
+) {
+  if (!destinationResult) {
+    return originalResult;
+  }
+
+  if (
+    getVirusTotalSeverity(
+      destinationResult.status
+    ) >
+    getVirusTotalSeverity(
+      originalResult.status
+    )
+  ) {
+    return destinationResult;
+  }
+
+  if (
+    originalResult.status === "unknown" ||
+    originalResult.status === "unavailable"
+  ) {
+    return destinationResult;
+  }
+
+  return originalResult;
+}
+
 function createOverallResult(
   virusTotalResult,
-  heuristicResult
+  heuristicResult,
+  redirectResolution
 ) {
-  if (virusTotalResult.status === "dangerous") {
+  if (
+    redirectResolution?.status === "blocked"
+  ) {
+    return {
+      status: "dangerous",
+      message: redirectResolution.message
+    };
+  }
+
+  if (
+    virusTotalResult.status === "dangerous"
+  ) {
     return {
       status: "dangerous",
       message: virusTotalResult.message
     };
   }
 
-  if (virusTotalResult.status === "suspicious") {
+  if (
+    virusTotalResult.status === "suspicious"
+  ) {
     return {
       status: "suspicious",
       message: virusTotalResult.message
     };
   }
 
-  if (heuristicResult.status === "warning") {
+  if (
+    heuristicResult.status === "warning"
+  ) {
     return {
       status: "suspicious",
       message:
@@ -328,7 +677,7 @@ export default {
       return jsonResponse({
         service: "QR Guardian API",
         status: "online",
-        version: "0.5.1"
+        version: "0.6.0"
       });
     }
 
@@ -365,7 +714,8 @@ export default {
       if (body.url.length > 4096) {
         return jsonResponse(
           {
-            error: "The supplied URL is too long."
+            error:
+              "The supplied URL is too long."
           },
           400
         );
@@ -374,11 +724,13 @@ export default {
       let checkedUrl;
 
       try {
-        checkedUrl = new URL(body.url.trim());
+        checkedUrl =
+          new URL(body.url.trim());
       } catch {
         return jsonResponse(
           {
-            error: "The supplied URL is invalid."
+            error:
+              "The supplied URL is invalid."
           },
           400
         );
@@ -400,26 +752,89 @@ export default {
       if (!env.VIRUSTOTAL_API_KEY) {
         return jsonResponse(
           {
-            error: "VirusTotal is not configured."
+            error:
+              "VirusTotal is not configured."
           },
           500
         );
       }
 
-      const heuristicResult =
+      const originalHeuristics =
         analyzeUrlHeuristics(checkedUrl);
 
-      const virusTotalResult =
+      let redirectResolution = {
+        status: "not_needed",
+        message:
+          "Redirect resolution was not needed.",
+        resolved: false,
+        finalUrl: null,
+        finalHostname: null,
+        redirectChain: []
+      };
+
+      let destinationUrl = checkedUrl;
+      let destinationHeuristics = null;
+      let destinationVirusTotalResult = null;
+
+      const originalVirusTotalResult =
         await checkVirusTotal(
           checkedUrl.href,
           env.VIRUSTOTAL_API_KEY,
-          heuristicResult.usesUrlShortener
+          originalHeuristics.usesUrlShortener
         );
 
-      const overallResult = createOverallResult(
-        virusTotalResult,
-        heuristicResult
-      );
+      if (
+        originalHeuristics.usesUrlShortener
+      ) {
+        redirectResolution =
+          await resolveShortenedUrl(
+            checkedUrl
+          );
+
+        if (
+          redirectResolution.status ===
+            "resolved" &&
+          redirectResolution.finalUrl
+        ) {
+          destinationUrl =
+            new URL(
+              redirectResolution.finalUrl
+            );
+
+          destinationHeuristics =
+            analyzeUrlHeuristics(
+              destinationUrl
+            );
+
+          destinationVirusTotalResult =
+            await checkVirusTotal(
+              destinationUrl.href,
+              env.VIRUSTOTAL_API_KEY,
+              isUrlShortener(
+                destinationUrl.hostname
+              )
+            );
+        }
+      }
+
+      const heuristicResult =
+        mergeHeuristicResults(
+          originalHeuristics,
+          destinationHeuristics
+        );
+
+      const virusTotalResult =
+        chooseVirusTotalResult(
+          originalVirusTotalResult,
+          destinationVirusTotalResult
+        );
+
+      const overallResult =
+        createOverallResult(
+          virusTotalResult,
+          heuristicResult,
+          redirectResolution
+        );
 
       return jsonResponse({
         status: overallResult.status,
@@ -427,9 +842,24 @@ export default {
         url: checkedUrl.href,
         hostname: checkedUrl.hostname,
         protocol: checkedUrl.protocol,
+        destinationUrl:
+          destinationUrl.href !==
+          checkedUrl.href
+            ? destinationUrl.href
+            : null,
+        destinationHostname:
+          destinationUrl.href !==
+          checkedUrl.href
+            ? destinationUrl.hostname
+            : null,
         checks: {
+          redirectResolution,
           heuristics: heuristicResult,
-          virusTotal: virusTotalResult
+          virusTotal: virusTotalResult,
+          virusTotalOriginal:
+            originalVirusTotalResult,
+          virusTotalDestination:
+            destinationVirusTotalResult
         }
       });
     }
