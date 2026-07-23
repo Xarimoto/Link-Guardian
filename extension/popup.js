@@ -1,9 +1,12 @@
 const urlInput = document.getElementById("urlInput");
 const checkButton = document.getElementById("checkButton");
+const openButton = document.getElementById("openButton");
 const result = document.getElementById("result");
 
 const apiEndpoint =
   "https://qr-guardian-api.qr-guardian-hari.workers.dev/v1/check";
+
+let approvedUrl = "";
 
 function showResult(message, status = "") {
   result.textContent = message;
@@ -15,6 +18,9 @@ async function checkUrl(url) {
     showResult("Please enter a URL.", "error");
     return;
   }
+
+  approvedUrl = "";
+  openButton.hidden = true;
 
   showResult("Checking URL...", "checking");
   checkButton.disabled = true;
@@ -58,14 +64,20 @@ async function checkUrl(url) {
 
       case "suspicious":
         showResult(message, "suspicious");
+        approvedUrl = data.url;
+        openButton.hidden = false;
         break;
 
       case "no_known_threats":
         showResult(message, "safe");
+        approvedUrl = data.url;
+        openButton.hidden = false;
         break;
 
       case "unknown":
         showResult(message, "unknown");
+        approvedUrl = data.url;
+        openButton.hidden = false;
         break;
 
       default:
@@ -85,6 +97,17 @@ async function checkUrl(url) {
 checkButton.addEventListener("click", () => {
   checkUrl(urlInput.value.trim());
 });
+
+openButton.addEventListener("click", () => {
+  if (!approvedUrl) {
+    return;
+  }
+
+  chrome.tabs.create({
+    url: approvedUrl
+  });
+});
+
 urlInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     checkUrl(urlInput.value.trim());
