@@ -2,27 +2,110 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>QR Guardian</title>
-  <link rel="stylesheet" href="popup.css">
+
+  <link
+    rel="stylesheet"
+    href="popup.css"
+  >
 </head>
 
 <body>
-  <h1>QR Guardian</h1>
-  <p>Scan and inspect links before opening them.</p>
+  <main class="app">
+    <header class="app-header">
+      <div class="brand-icon" aria-hidden="true">
+        🛡️
+      </div>
 
-  <input
-    id="urlInput"
-    type="url"
-    placeholder="Paste a URL to inspect"
-  >
+      <div>
+        <h1>QR Guardian</h1>
 
-  <button id="checkButton" type="button">
-    Check URL
-  </button>
-  <button id="openButton" type="button" hidden>Open Website</button>
+        <p class="subtitle">
+          Inspect links before opening them.
+        </p>
+      </div>
+    </header>
 
-  <p id="result"></p>
+    <section class="url-section">
+      <label for="urlInput">
+        Website address
+      </label>
+
+      <input
+        id="urlInput"
+        type="url"
+        placeholder="Paste a URL to inspect"
+        autocomplete="off"
+        spellcheck="false"
+      >
+
+      <button
+        id="checkButton"
+        type="button"
+      >
+        Check URL
+      </button>
+    </section>
+
+    <section
+      id="resultCard"
+      class="result-card"
+      hidden
+    >
+      <div class="result-header">
+        <span
+          id="verdictBadge"
+          class="verdict-badge"
+        >
+          Checking
+        </span>
+
+        <span id="hostnameValue"></span>
+      </div>
+
+      <h2 id="resultTitle">
+        Checking URL
+      </h2>
+
+      <p id="resultMessage"></p>
+
+      <div
+        id="destinationSection"
+        class="result-detail"
+        hidden
+      >
+        <span class="detail-label">
+          Destination
+        </span>
+
+        <span id="destinationValue"></span>
+      </div>
+
+      <div
+        id="warningsSection"
+        class="warnings-section"
+        hidden
+      >
+        <h3>Warnings</h3>
+
+        <ul id="warningsList"></ul>
+      </div>
+    </section>
+
+    <button
+      id="openButton"
+      type="button"
+      hidden
+    >
+      Open Website
+    </button>
+  </main>
 
   <script src="popup.js"></script>
 </body>
