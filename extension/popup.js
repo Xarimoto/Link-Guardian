@@ -40,8 +40,16 @@ async function checkUrl(url) {
       return;
     }
 
-    const message =
-      `${data.message} Hostname: ${data.hostname}`;
+    const warnings =
+      data.checks?.heuristics?.warnings ?? [];
+
+    let message = data.message;
+
+    if (warnings.length > 0) {
+      message += ` Warning: ${warnings.join(" ")}`;
+    }
+
+    message += ` Hostname: ${data.hostname}`;
 
     switch (data.status) {
       case "dangerous":
@@ -78,8 +86,11 @@ checkButton.addEventListener("click", () => {
   checkUrl(urlInput.value.trim());
 });
 
-const pageParameters = new URLSearchParams(window.location.search);
-const rightClickedUrl = pageParameters.get("url");
+const pageParameters =
+  new URLSearchParams(window.location.search);
+
+const rightClickedUrl =
+  pageParameters.get("url");
 
 if (rightClickedUrl) {
   urlInput.value = rightClickedUrl;

@@ -28,6 +28,57 @@ function createVirusTotalUrlId(url) {
     .replace(/=+$/g, "");
 }
 
+function analyzeUrlHeuristics(url) {
+  const warnings = [];
+  const hostname = url.hostname.toLowerCase();
+
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+    warnings.push(
+      "The link uses an IP address instead of a domain name."
+    );
+  }
+
+  if (hostname.includes("xn--")) {
+    warnings.push(
+      "The domain contains internationalized or punycode characters."
+    );
+  }
+
+  if (url.username || url.password) {
+    warnings.push(
+      "The link contains embedded login information."
+    );
+  }
+
+  if (
+    url.port &&
+    url.port !== "80" &&
+    url.port !== "443"
+  ) {
+    warnings.push(
+      `The link uses the unusual port ${url.port}.`
+    );
+  }
+
+  const hostnameParts = hostname.split(".");
+  const subdomainCount =
+    hostnameParts.length > 2
+      ? hostnameParts.length - 2
+      : 0;
+
+  if (subdomainCount >= 4) {
+    warnings.push(
+      "The link contains an unusually large number of subdomains."
+    );
+  }
+
+  return {
+    status: warnings.length > 0 ? "warning" : "clear",
+    warningCount: warnings.length,
+    warnings
+  };
+}
+
 async function getVirusTotalReport(url, apiKey) {
   const urlId = createVirusTotalUrlId(url);
 
@@ -68,7 +119,11 @@ async function getVirusTotalReport(url, apiKey) {
   };
 }
 
-function formatVirusTotalReport(report, reportUrl, usedHomepageFallback) {
+function formatVirusTotalReport(
+  report,
+  reportUrl,
+  usedHomepageFallback
+) {
   const attributes = report.data?.attributes ?? {};
   const statistics = attributes.last_analysis_stats ?? {};
 
@@ -93,7 +148,8 @@ function formatVirusTotalReport(report, reportUrl, usedHomepageFallback) {
 
     if (usedHomepageFallback) {
       message =
-        "No exact URL report was found. The website homepage report has no known threats.";
+        "No exact URL report was found. " +
+        "The website homepage report has no known threats.";
     } else {
       message =
         "No known threats were found in the latest VirusTotal report.";
@@ -110,13 +166,18 @@ function formatVirusTotalReport(report, reportUrl, usedHomepageFallback) {
     suspicious,
     harmless,
     undetected,
-    lastAnalysisDate: attributes.last_analysis_date ?? null,
-    finalUrl: attributes.last_final_url ?? reportUrl
+    lastAnalysisDate:
+      attributes.last_analysis_date ?? null,
+    finalUrl:
+      attributes.last_final_url ?? reportUrl
   };
 }
 
 async function checkVirusTotal(url, apiKey) {
-  const exactResult = await getVirusTotalReport(url, apiKey);
+  const exactResult = await getVirusTotalReport(
+    url,
+    apiKey
+  );
 
   if (exactResult.type === "found") {
     return formatVirusTotalReport(
@@ -169,6 +230,40 @@ async function checkVirusTotal(url, apiKey) {
   };
 }
 
+function createOverallResult(
+  virusTotalResult,
+  heuristicResult
+) {
+  if (virusTotalResult.status === "dangerous") {
+    return {
+      status: "dangerous",
+      message: virusTotalResult.message
+    };
+  }
+
+  if (virusTotalResult.status === "suspicious") {
+    return {
+      status: "suspicious",
+      message: virusTotalResult.message
+    };
+  }
+
+  if (heuristicResult.status === "warning") {
+    return {
+      status: "suspicious",
+      message:
+        `${virusTotalResult.message} ` +
+        `QR Guardian found ${heuristicResult.warningCount} ` +
+        `additional URL warning(s).`
+    };
+  }
+
+  return {
+    status: virusTotalResult.status,
+    message: virusTotalResult.message
+  };
+}
+
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
@@ -180,11 +275,14 @@ export default {
       });
     }
 
-    if (request.method === "GET" && requestUrl.pathname === "/") {
+    if (
+      request.method === "GET" &&
+      requestUrl.pathname === "/"
+    ) {
       return jsonResponse({
         service: "QR Guardian API",
         status: "online",
-        version: "0.3.0"
+        version: "0.4.0"
       });
     }
 
@@ -199,13 +297,17 @@ export default {
       } catch {
         return jsonResponse(
           {
-            error: "The request body must contain valid JSON."
+            error:
+              "The request body must contain valid JSON."
           },
           400
         );
       }
 
-      if (!body.url || typeof body.url !== "string") {
+      if (
+        !body.url ||
+        typeof body.url !== "string"
+      ) {
         return jsonResponse(
           {
             error: "A URL is required."
@@ -242,7 +344,8 @@ export default {
       ) {
         return jsonResponse(
           {
-            error: "Only HTTP and HTTPS links are supported."
+            error:
+              "Only HTTP and HTTPS links are supported."
           },
           400
         );
@@ -257,18 +360,28 @@ export default {
         );
       }
 
-      const virusTotalResult = await checkVirusTotal(
-        checkedUrl.href,
-        env.VIRUSTOTAL_API_KEY
+      const heuristicResult =
+        analyzeUrlHeuristics(checkedUrl);
+
+      const virusTotalResult =
+        await checkVirusTotal(
+          checkedUrl.href,
+          env.VIRUSTOTAL_API_KEY
+        );
+
+      const overallResult = createOverallResult(
+        virusTotalResult,
+        heuristicResult
       );
 
       return jsonResponse({
-        status: virusTotalResult.status,
-        message: virusTotalResult.message,
+        status: overallResult.status,
+        message: overallResult.message,
         url: checkedUrl.href,
         hostname: checkedUrl.hostname,
         protocol: checkedUrl.protocol,
         checks: {
+          heuristics: heuristicResult,
           virusTotal: virusTotalResult
         }
       });
