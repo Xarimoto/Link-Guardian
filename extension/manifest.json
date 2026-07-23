@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "QR Guardian",
+  "version": "0.1.0",
+  "description": "Inspect links before opening them.",
+  "permissions": [
+    "contextMenus"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "QR Guardian",
+    "default_popup": "popup.html"
+  }
+}
