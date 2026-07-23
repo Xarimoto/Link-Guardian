@@ -85,6 +85,11 @@ async function checkUrl(url) {
 checkButton.addEventListener("click", () => {
   checkUrl(urlInput.value.trim());
 });
+urlInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    checkUrl(urlInput.value.trim());
+  }
+});
 
 const pageParameters =
   new URLSearchParams(window.location.search);
