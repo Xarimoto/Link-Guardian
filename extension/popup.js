@@ -2,10 +2,21 @@ const urlInput = document.getElementById("urlInput");
 const checkButton = document.getElementById("checkButton");
 const result = document.getElementById("result");
 
-const apiEndpoint = "https://qr-guardian-api.qr-guardian-hari.workers.dev/v1/check";
+const apiEndpoint =
+  "https://qr-guardian-api.qr-guardian-hari.workers.dev/v1/check";
+
+function showResult(message, status = "") {
+  result.textContent = message;
+  result.className = status;
+}
 
 async function checkUrl(url) {
-  result.textContent = "Checking URL...";
+  if (!url) {
+    showResult("Please enter a URL.", "error");
+    return;
+  }
+
+  showResult("Checking URL...", "checking");
   checkButton.disabled = true;
 
   try {
@@ -22,15 +33,42 @@ async function checkUrl(url) {
     const data = await response.json();
 
     if (!response.ok) {
-      result.textContent = data.error || "Unable to check the URL.";
+      showResult(
+        data.error || "Unable to check the URL.",
+        "error"
+      );
       return;
     }
 
-    result.textContent =
+    const message =
       `${data.message} Hostname: ${data.hostname}`;
+
+    switch (data.status) {
+      case "dangerous":
+        showResult(message, "dangerous");
+        break;
+
+      case "suspicious":
+        showResult(message, "suspicious");
+        break;
+
+      case "no_known_threats":
+        showResult(message, "safe");
+        break;
+
+      case "unknown":
+        showResult(message, "unknown");
+        break;
+
+      default:
+        showResult(message, "unavailable");
+        break;
+    }
   } catch {
-    result.textContent =
-      "Unable to connect to the QR Guardian API.";
+    showResult(
+      "Unable to connect to the QR Guardian API.",
+      "error"
+    );
   } finally {
     checkButton.disabled = false;
   }
