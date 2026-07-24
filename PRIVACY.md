@@ -1,7 +1,7 @@
 ﻿# Link Guardian Privacy Policy
 
 **Effective date:** July 23, 2026  
-**Last updated:** July 23, 2026
+**Last updated:** July 24, 2026
 
 Link Guardian is a Chrome extension developed and published by **Hari Bozhinov**.
 
@@ -11,12 +11,12 @@ This Privacy Policy explains what information Link Guardian processes, why it is
 
 Link Guardian helps users inspect website links before opening them.
 
-The extension analyzes links only when a user takes an explicit action, such as:
+The extension analyzes a link only when a user explicitly starts a security check by:
 
-- Entering or pasting a URL into the extension
-- Pressing the **Check URL** button
+- Clicking the **Check URL** button after a URL has been entered, pasted, or prefilled
 - Pressing Enter while a URL is entered
-- Right-clicking a hyperlink and selecting **Check link with Link Guardian**
+
+Selecting **Check link with Link Guardian** from the right-click menu only prefills the URL. The URL is not transmitted until the user clicks **Check URL** or presses Enter.
 
 Link Guardian does not passively monitor browsing activity and does not automatically inspect every website a user visits.
 
@@ -50,6 +50,10 @@ Link Guardian also processes security-analysis results, including:
 - Redirect-security warnings
 - The date of the latest available VirusTotal analysis
 
+For abuse prevention, the Cloudflare Worker temporarily uses the source IP address associated with a request as a rate-limit key. This allows Link Guardian to limit excessive URL-check requests from the same network address.
+
+The source IP address is not intentionally written to Link Guardian application logs, saved in a Link Guardian database, or used to create a user profile or scan history.
+
 Users should avoid submitting private, confidential, authenticated, or sensitive URLs that contain personal information, access tokens, session identifiers, or other confidential data.
 
 ## 3. How Information Is Used
@@ -68,7 +72,9 @@ Link Guardian may use a submitted URL to:
 - Display a security verdict and related warnings
 - Determine which destination should be opened if the user chooses to continue
 
-Link Guardian does not use submitted URLs for advertising, behavioral profiling, marketing, or unrelated purposes.
+Source IP addresses are used only to apply rate limits and protect the public Link Guardian API from excessive or abusive requests.
+
+Link Guardian does not use submitted URLs or source IP addresses for advertising, behavioral profiling, marketing, or unrelated purposes.
 
 ## 4. VirusTotal
 
@@ -85,24 +91,29 @@ Link Guardian does not automatically submit unknown URLs to VirusTotal for a new
 
 VirusTotal receives the URL information or URL-derived identifier required to locate an existing report. VirusTotal may process this information according to its own terms, privacy policy, and data-retention practices.
 
-VirusTotal is operated independently from Link Guardian. Link Guardian does not control VirusTotalâ€™s systems or policies.
+VirusTotal is operated independently from Link Guardian. Link Guardian does not control VirusTotal's systems or policies.
 
 ## 5. Cloudflare
 
-Link Guardianâ€™s backend API runs on Cloudflare Workers.
+Link Guardian's backend API runs on Cloudflare Workers.
 
 The submitted URL is transmitted over HTTPS from the extension to the Link Guardian Cloudflare Worker so that the requested analysis can be performed.
 
-Link Guardianâ€™s application code:
+Link Guardian's application code:
 
 - Does not intentionally store submitted URLs
 - Does not maintain a scan-history database
 - Does not use Cloudflare KV, D1, R2, Durable Objects, or Analytics Engine to store scans
 - Does not include custom request logging
 - Has automatic Worker invocation logging disabled
-- Does not intentionally record user IP addresses
+- Does not intentionally write user IP addresses to application logs or a database
+- Uses source IP addresses temporarily as rate-limit keys to prevent abuse
 
-Cloudflare may still process limited technical information necessary to operate, secure, route, and maintain its network. This may include IP addresses, timestamps, routing data, request metadata, and aggregate service metrics.
+The current rate limiter allows a limited number of URL checks during a 60-second period from the same source IP address.
+
+The rate-limit key is used only for abuse prevention and is not used to identify users, track browsing activity, or build user profiles.
+
+Cloudflare may still process limited technical information necessary to operate, secure, route, and maintain its network. This may include IP addresses, timestamps, routing data, request metadata, rate-limit counters, and aggregate service metrics.
 
 Cloudflare processes this technical information according to its own privacy policy and service terms.
 
@@ -128,9 +139,11 @@ Link Guardian does not intentionally retain:
 - Browsing history
 - User profiles
 - User accounts
-- Persistent identifiers
+- Persistent user identifiers
 
-Submitted information is processed temporarily in memory while the requested security check is performed.
+Submitted URLs and security results are processed temporarily while the requested security check is performed.
+
+Source IP addresses are temporarily processed through Cloudflare's rate-limiting system to enforce a 60-second request window. Link Guardian does not intentionally save those addresses in a scan-history database or custom application logs.
 
 Link Guardian does not provide a scan-history feature in its current version.
 
@@ -182,6 +195,7 @@ Link Guardian uses reasonable technical measures intended to protect submitted i
 - Redirect timeouts
 - Blocking of unsafe redirect destinations
 - Disabled automatic Worker invocation logging
+- Rate limiting to reduce excessive or abusive API requests
 
 No internet service can guarantee absolute security.
 
@@ -191,13 +205,15 @@ A Link Guardian result stating **No Known Threats** means that no known threats 
 
 Users control when Link Guardian processes a URL.
 
-A user may choose not to submit a URL, may close the extension without running a check, or may uninstall Link Guardian at any time through Chromeâ€™s extension-management settings.
+Selecting the right-click menu option only prefills the URL. Users may review or remove the URL before clicking **Check URL** or pressing Enter.
+
+A user may choose not to submit a URL, may close the extension without running a check, or may uninstall Link Guardian at any time through Chrome's extension-management settings.
 
 Because Link Guardian does not intentionally maintain user accounts or scan-history records, there is normally no Link Guardian account data or stored scan history to access, modify, or delete.
 
 Questions or privacy requests may be sent to the contact address listed below.
 
-## 12. Childrenâ€™s Privacy
+## 12. Children's Privacy
 
 Link Guardian is a general-purpose website-security utility.
 
@@ -220,7 +236,7 @@ Because Link Guardian does not intentionally store submitted URLs or scan histor
 
 ## 14. Changes to This Privacy Policy
 
-This Privacy Policy may be updated when Link Guardianâ€™s features, service providers, data practices, or legal requirements change.
+This Privacy Policy may be updated when Link Guardian's features, service providers, data practices, or legal requirements change.
 
 The updated policy will include a revised **Last updated** date.
 

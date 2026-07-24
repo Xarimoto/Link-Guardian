@@ -204,7 +204,7 @@
         <br>
 
         <strong>Last updated:</strong>
-        July 23, 2026
+        July 24, 2026
       </div>
 
       <p>
@@ -213,7 +213,7 @@
       </p>
 
       <p>
-        This Privacy Policy explains what information QR
+        This Privacy Policy explains what information Link
         Guardian processes, why it is processed, how
         third-party services are involved, and the choices
         available to users.
@@ -227,28 +227,29 @@
       </p>
 
       <p>
-        The extension analyzes links only when a user takes
-        an explicit action, such as:
+        The extension analyzes a link only when a user
+        explicitly starts a security check by:
       </p>
 
       <ul>
         <li>
-          Entering or pasting a URL into the extension
-        </li>
-
-        <li>
-          Pressing the <strong>Check URL</strong> button
+          Clicking the <strong>Check URL</strong> button
+          after a URL has been entered, pasted, or
+          prefilled
         </li>
 
         <li>
           Pressing Enter while a URL is entered
         </li>
-
-        <li>
-          Right-clicking a hyperlink and selecting
-          <strong>Check link with Link Guardian</strong>
-        </li>
       </ul>
+
+      <p>
+        Selecting
+        <strong>Check link with Link Guardian</strong>
+        from the right-click menu only prefills the URL.
+        The URL is not transmitted until the user clicks
+        <strong>Check URL</strong> or presses Enter.
+      </p>
 
       <p>
         Link Guardian does not passively monitor browsing
@@ -259,9 +260,9 @@
       <h2>2. Information Processed</h2>
 
       <p>
-        When a user requests a security check, Link Guardian
-        processes the submitted website address, also known
-        as a URL.
+        When a user requests a security check, Link
+        Guardian processes the submitted website address,
+        also known as a URL.
       </p>
 
       <p>The URL may contain:</p>
@@ -272,6 +273,7 @@
         <li>A path to a specific webpage</li>
         <li>Query parameters</li>
         <li>A port number</li>
+
         <li>
           Other information included by the website in the
           URL
@@ -279,16 +281,15 @@
       </ul>
 
       <p>
-        For shortened links, Link Guardian may also process:
+        For shortened links, Link Guardian may also
+        process:
       </p>
 
       <ul>
         <li>Redirect destinations</li>
         <li>Redirect status codes</li>
         <li>The final resolved URL</li>
-        <li>
-          The domains appearing in the redirect chain
-        </li>
+        <li>The domains appearing in the redirect chain</li>
       </ul>
 
       <p>
@@ -303,11 +304,27 @@
         <li>Harmless and undetected counts</li>
         <li>Local URL warning indicators</li>
         <li>Redirect-security warnings</li>
+
         <li>
           The date of the latest available VirusTotal
           analysis
         </li>
       </ul>
+
+      <p>
+        For abuse prevention, the Cloudflare Worker
+        temporarily uses the source IP address associated
+        with a request as a rate-limit key. This allows
+        Link Guardian to limit excessive URL-check
+        requests from the same network address.
+      </p>
+
+      <p>
+        The source IP address is not intentionally written
+        to Link Guardian application logs, saved in a Link
+        Guardian database, or used to create a user profile
+        or scan history.
+      </p>
 
       <div class="notice">
         Users should avoid submitting private,
@@ -332,13 +349,16 @@
         <li>Resolve shortened-link destinations</li>
         <li>Detect unusual redirect behavior</li>
         <li>Detect redirects from HTTPS to HTTP</li>
+
         <li>
           Retrieve an existing VirusTotal reputation
           report
         </li>
+
         <li>
           Display a security verdict and related warnings
         </li>
+
         <li>
           Determine which destination should be opened if
           the user chooses to continue
@@ -346,9 +366,15 @@
       </ul>
 
       <p>
-        Link Guardian does not use submitted URLs for
-        advertising, behavioral profiling, marketing, or
-        unrelated purposes.
+        Source IP addresses are used only to apply rate
+        limits and protect the public Link Guardian API
+        from excessive or abusive requests.
+      </p>
+
+      <p>
+        Link Guardian does not use submitted URLs or source
+        IP addresses for advertising, behavioral profiling,
+        marketing, or unrelated purposes.
       </p>
 
       <h2>4. VirusTotal</h2>
@@ -384,25 +410,26 @@
       </p>
 
       <p>
-        VirusTotal is operated independently from QR
+        VirusTotal is operated independently from Link
         Guardian. Link Guardian does not control
-        VirusTotalâ€™s systems or policies.
+        VirusTotal's systems or policies.
       </p>
 
       <h2>5. Cloudflare</h2>
 
       <p>
-        Link Guardianâ€™s backend API runs on Cloudflare
+        Link Guardian's backend API runs on Cloudflare
         Workers.
       </p>
 
       <p>
         The submitted URL is transmitted over HTTPS from
-        the extension to the Link Guardian Cloudflare Worker
-        so that the requested analysis can be performed.
+        the extension to the Link Guardian Cloudflare
+        Worker so that the requested analysis can be
+        performed.
       </p>
 
-      <p>Link Guardianâ€™s application code:</p>
+      <p>Link Guardian's application code:</p>
 
       <ul>
         <li>
@@ -418,23 +445,44 @@
           Objects, or Analytics Engine to store scans
         </li>
 
-        <li>Does not include custom request logging</li>
+        <li>
+          Does not include custom request logging
+        </li>
 
         <li>
           Has automatic Worker invocation logging disabled
         </li>
 
         <li>
-          Does not intentionally record user IP addresses
+          Does not intentionally write user IP addresses to
+          application logs or a database
+        </li>
+
+        <li>
+          Uses source IP addresses temporarily as
+          rate-limit keys to prevent abuse
         </li>
       </ul>
+
+      <p>
+        The current rate limiter allows a limited number of
+        URL checks during a 60-second period from the same
+        source IP address.
+      </p>
+
+      <p>
+        The rate-limit key is used only for abuse
+        prevention and is not used to identify users, track
+        browsing activity, or build user profiles.
+      </p>
 
       <p>
         Cloudflare may still process limited technical
         information necessary to operate, secure, route,
         and maintain its network. This may include IP
         addresses, timestamps, routing data, request
-        metadata, and aggregate service metrics.
+        metadata, rate-limit counters, and aggregate
+        service metrics.
       </p>
 
       <p>
@@ -446,7 +494,7 @@
       <h2>6. Redirect and Destination Requests</h2>
 
       <p>
-        When a user checks a known shortened URL, the QR
+        When a user checks a known shortened URL, the Link
         Guardian Worker may contact the shortening service
         to determine the final destination.
       </p>
@@ -467,8 +515,8 @@
       </p>
 
       <p>
-        Link Guardian follows a maximum of five redirects and
-        applies a timeout to redirect requests.
+        Link Guardian follows a maximum of five redirects
+        and applies a timeout to redirect requests.
       </p>
 
       <p>
@@ -489,18 +537,26 @@
         <li>Browsing history</li>
         <li>User profiles</li>
         <li>User accounts</li>
-        <li>Persistent identifiers</li>
+        <li>Persistent user identifiers</li>
       </ul>
 
       <p>
-        Submitted information is processed temporarily in
-        memory while the requested security check is
+        Submitted URLs and security results are processed
+        temporarily while the requested security check is
         performed.
       </p>
 
       <p>
-        Link Guardian does not provide a scan-history feature
-        in its current version.
+        Source IP addresses are temporarily processed
+        through Cloudflare's rate-limiting system to
+        enforce a 60-second request window. Link Guardian
+        does not intentionally save those addresses in a
+        scan-history database or custom application logs.
+      </p>
+
+      <p>
+        Link Guardian does not provide a scan-history
+        feature in its current version.
       </p>
 
       <p>
@@ -554,6 +610,7 @@
         <li>Build advertising profiles</li>
         <li>Track users across unrelated websites</li>
         <li>Use submitted URLs for marketing</li>
+
         <li>
           Transfer submitted data for credit, insurance,
           employment, or lending decisions
@@ -602,6 +659,11 @@
         <li>
           Disabled automatic Worker invocation logging
         </li>
+
+        <li>
+          Rate limiting to reduce excessive or abusive API
+          requests
+        </li>
       </ul>
 
       <p>
@@ -624,17 +686,24 @@
       </p>
 
       <p>
-        A user may choose not to submit a URL, may close
-        the extension without running a check, or may
-        uninstall Link Guardian at any time through Chromeâ€™s
-        extension-management settings.
+        Selecting the right-click menu option only prefills
+        the URL. Users may review, edit, or remove the URL
+        before clicking <strong>Check URL</strong> or
+        pressing Enter.
       </p>
 
       <p>
-        Because Link Guardian does not intentionally maintain
-        user accounts or scan-history records, there is
-        normally no Link Guardian account data or stored scan
-        history to access, modify, or delete.
+        A user may choose not to submit a URL, may close
+        the extension without running a check, or may
+        uninstall Link Guardian at any time through
+        Chrome's extension-management settings.
+      </p>
+
+      <p>
+        Because Link Guardian does not intentionally
+        maintain user accounts or scan-history records,
+        there is normally no Link Guardian account data or
+        stored scan history to access, modify, or delete.
       </p>
 
       <p>
@@ -642,7 +711,7 @@
         contact address listed below.
       </p>
 
-      <h2>12. Childrenâ€™s Privacy</h2>
+      <h2>12. Children's Privacy</h2>
 
       <p>
         Link Guardian is a general-purpose website-security
@@ -681,7 +750,8 @@
         </li>
 
         <li>
-          Protect the security and integrity of Link Guardian
+          Protect the security and integrity of Link
+          Guardian
         </li>
 
         <li>
@@ -703,8 +773,8 @@
       <h2>14. Changes to This Privacy Policy</h2>
 
       <p>
-        This Privacy Policy may be updated when QR
-        Guardianâ€™s features, service providers, data
+        This Privacy Policy may be updated when Link
+        Guardian's features, service providers, data
         practices, or legal requirements change.
       </p>
 
@@ -734,7 +804,7 @@
     </main>
 
     <footer>
-      Â© 2026 Hari Bozhinov Â· Link Guardian
+      &copy; 2026 Hari Bozhinov &middot; Link Guardian
     </footer>
   </div>
 </body>
