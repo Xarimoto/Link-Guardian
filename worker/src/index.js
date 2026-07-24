@@ -1,4 +1,4 @@
-const corsHeaders = {
+﻿const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type"
@@ -467,7 +467,7 @@ async function fetchWithTimeout(
           Accept:
             "text/html,application/xhtml+xml,*/*;q=0.8",
           "User-Agent":
-            "QR-Guardian-Link-Resolver/0.6"
+            "Link-Guardian-Link-Resolver/0.6"
         }
       }
     );
@@ -524,7 +524,7 @@ async function resolveShortenedUrl(
       return {
         status: "blocked",
         message:
-          "QR Guardian blocked a redirect toward a private or unsupported destination.",
+          "Link Guardian blocked a redirect toward a private or unsupported destination.",
         resolved: false,
         finalUrl: null,
         finalHostname: null,
@@ -543,7 +543,7 @@ async function resolveShortenedUrl(
       return {
         status: "unresolved",
         message:
-          "QR Guardian could not resolve the shortened link safely.",
+          "Link Guardian could not resolve the shortened link safely.",
         resolved: false,
         finalUrl: null,
         finalHostname: null,
@@ -578,7 +578,7 @@ async function resolveShortenedUrl(
             : "unresolved",
         message:
           resolved
-            ? "QR Guardian resolved the shortened link destination."
+            ? "Link Guardian resolved the shortened link destination."
             : "The shortened link did not expose a redirect destination.",
         resolved,
         finalUrl:
@@ -621,7 +621,7 @@ async function resolveShortenedUrl(
       return {
         status: "blocked",
         message:
-          "QR Guardian blocked a redirect toward a private or unsupported destination.",
+          "Link Guardian blocked a redirect toward a private or unsupported destination.",
         resolved: false,
         finalUrl: null,
         finalHostname: null,
@@ -999,7 +999,7 @@ function createOverallResult(
       status: "suspicious",
       message:
         `${virusTotalResult.message} ` +
-        `QR Guardian found ${heuristicResult.warningCount} ` +
+        `Link Guardian found ${heuristicResult.warningCount} ` +
         `additional URL warning(s).`
     };
   }
@@ -1042,7 +1042,7 @@ export default {
     ) {
       return jsonResponse({
         service:
-          "QR Guardian API",
+          "Link Guardian API",
         status: "online",
         version: "0.6.2"
       });

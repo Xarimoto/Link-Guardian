@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "QR Guardian",
-  "version": "0.3.0",
+  "name": "Link Guardian",
+  "version": "0.4.0",
   "description": "Inspect links with VirusTotal, redirect analysis, and local URL security checks before opening them.",
   "permissions": [
     "contextMenus"
@@ -16,7 +16,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "QR Guardian",
+    "default_title": "Link Guardian",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",

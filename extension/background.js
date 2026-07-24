@@ -2,7 +2,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: "check-link",
-      title: "Check link with QR Guardian",
+      title: "Check link with Link Guardian",
       contexts: ["link"]
     });
   });

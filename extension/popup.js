@@ -455,7 +455,7 @@ async function checkUrl(rawUrl) {
     showResult(data);
   } catch {
     showError(
-      "Unable to connect to the QR Guardian API."
+      "Unable to connect to the Link Guardian API."
     );
   } finally {
     checkButton.disabled = false;
