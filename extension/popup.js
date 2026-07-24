@@ -84,7 +84,10 @@ function clearWarnings() {
 function showWarnings(warnings) {
   clearWarnings();
 
-  if (!Array.isArray(warnings) || warnings.length === 0) {
+  if (
+    !Array.isArray(warnings) ||
+    warnings.length === 0
+  ) {
     return;
   }
 
@@ -140,7 +143,9 @@ function getVirusTotalData(data) {
   );
 }
 
-function getVirusTotalStats(virusTotalData) {
+function getVirusTotalStats(
+  virusTotalData
+) {
   if (!virusTotalData) {
     return null;
   }
@@ -149,7 +154,8 @@ function getVirusTotalStats(virusTotalData) {
     virusTotalData.stats ||
     virusTotalData.analysisStats ||
     virusTotalData.lastAnalysisStats ||
-    virusTotalData.data?.attributes?.last_analysis_stats;
+    virusTotalData.data?.attributes
+      ?.last_analysis_stats;
 
   if (nestedStats) {
     return nestedStats;
@@ -166,7 +172,9 @@ function getVirusTotalStats(virusTotalData) {
     : null;
 }
 
-function getAnalysisDate(virusTotalData) {
+function getAnalysisDate(
+  virusTotalData
+) {
   if (!virusTotalData) {
     return null;
   }
@@ -175,7 +183,8 @@ function getAnalysisDate(virusTotalData) {
     virusTotalData.analysisDate ||
     virusTotalData.lastAnalysisDate ||
     virusTotalData.lastAnalysisTimestamp ||
-    virusTotalData.data?.attributes?.last_analysis_date ||
+    virusTotalData.data?.attributes
+      ?.last_analysis_date ||
     null
   );
 }
@@ -217,7 +226,9 @@ function showVirusTotalDetails(data) {
     getVirusTotalData(data);
 
   const stats =
-    getVirusTotalStats(virusTotalData);
+    getVirusTotalStats(
+      virusTotalData
+    );
 
   if (!stats) {
     return;
@@ -237,7 +248,9 @@ function showVirusTotalDetails(data) {
 
   const formattedDate =
     formatAnalysisDate(
-      getAnalysisDate(virusTotalData)
+      getAnalysisDate(
+        virusTotalData
+      )
     );
 
   analysisDateValue.textContent =
@@ -252,7 +265,9 @@ function resetOpenButton() {
   approvedUrl = "";
 
   openButton.hidden = true;
-  openButton.textContent = "Open Website";
+  openButton.textContent =
+    "Open Website";
+
   openButton.className = "";
 }
 
@@ -261,7 +276,9 @@ function showCheckingState(url) {
   resultCard.className =
     "result-card checking";
 
-  verdictBadge.textContent = "Checking";
+  verdictBadge.textContent =
+    "Checking";
+
   hostnameValue.textContent = "";
 
   resultTitle.textContent =
@@ -281,13 +298,16 @@ function showError(message) {
   resultCard.className =
     "result-card error";
 
-  verdictBadge.textContent = "Error";
+  verdictBadge.textContent =
+    "Error";
+
   hostnameValue.textContent = "";
 
   resultTitle.textContent =
     "Unable to check link";
 
-  resultMessage.textContent = message;
+  resultMessage.textContent =
+    message;
 
   showDestination(null, null);
   resetVirusTotalDetails();
@@ -312,20 +332,24 @@ function configureOpenButton(
 
   approvedUrl = websiteToOpen;
 
-  if (status === "no_known_threats") {
+  if (
+    status === "no_known_threats"
+  ) {
     openButton.textContent =
       hasDestination
         ? "Open Destination"
         : "Open Website";
 
-    openButton.className = "safe-open";
+    openButton.className =
+      "safe-open";
   } else {
     openButton.textContent =
       hasDestination
         ? "Proceed to Destination"
         : "Proceed Anyway";
 
-    openButton.className = "proceed";
+    openButton.className =
+      "proceed";
   }
 
   openButton.hidden = false;
@@ -333,7 +357,8 @@ function configureOpenButton(
 
 function showResult(data) {
   const warnings =
-    data.checks?.heuristics?.warnings ?? [];
+    data.checks?.heuristics
+      ?.warnings ?? [];
 
   const destinationUrl =
     data.destinationUrl || null;
@@ -352,7 +377,8 @@ function showResult(data) {
     data.hostname || "";
 
   resultMessage.textContent =
-    data.message || "URL check completed.";
+    data.message ||
+    "URL check completed.";
 
   showDestination(
     destinationUrl,
@@ -416,7 +442,10 @@ async function checkUrl(rawUrl) {
     normalizeUrlInput(rawUrl);
 
   if (!url) {
-    showError("Please enter a URL.");
+    showError(
+      "Please enter a URL."
+    );
+
     return;
   }
 
@@ -426,19 +455,20 @@ async function checkUrl(rawUrl) {
   checkButton.disabled = true;
 
   try {
-    const response = await fetch(
-      apiEndpoint,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-        body: JSON.stringify({
-          url
-        })
-      }
-    );
+    const response =
+      await fetch(
+        apiEndpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            url
+          })
+        }
+      );
 
     const data =
       await response.json();
@@ -446,7 +476,7 @@ async function checkUrl(rawUrl) {
     if (!response.ok) {
       showError(
         data.error ||
-          "Unable to check the URL."
+        "Unable to check the URL."
       );
 
       return;
@@ -500,6 +530,10 @@ const rightClickedUrl =
   pageParameters.get("url");
 
 if (rightClickedUrl) {
-  urlInput.value = rightClickedUrl;
-  checkUrl(rightClickedUrl);
+  urlInput.value =
+    normalizeUrlInput(
+      rightClickedUrl
+    );
+
+  urlInput.focus();
 }

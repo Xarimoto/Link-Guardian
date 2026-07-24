@@ -110,6 +110,27 @@ button:disabled {
   opacity: 0.6;
 }
 
+.privacy-notice {
+  margin: 2px 2px 0;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.privacy-notice strong {
+  color: #475467;
+}
+
+.privacy-notice a {
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.privacy-notice a:hover {
+  text-decoration: underline;
+}
+
 .result-card {
   margin-top: 18px;
   padding: 16px;
@@ -328,6 +349,16 @@ button:disabled {
   line-height: 1.4;
 }
 
+.safety-disclaimer {
+  margin: 14px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid
+    rgba(100, 116, 139, 0.22);
+  color: #667085;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 #openButton {
   margin-top: 12px;
 }
@@ -347,6 +378,7 @@ button:disabled {
 #openButton.proceed:hover {
   background: #b45309;
 }
+
 @media (min-width: 700px) {
   body {
     width: auto;
