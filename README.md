@@ -1,6 +1,6 @@
-# QR Guardian
+﻿# Link Guardian
 
-QR Guardian is a Chrome extension that inspects links before opening them.
+Link Guardian is a Chrome extension that inspects links before opening them.
 
 It combines:
 
@@ -24,19 +24,19 @@ Users can:
 - Paste a URL into the extension
 - Enter a domain without a protocol, such as `cnn.com`
 - Press Enter or click **Check URL**
-- Right-click a webpage link and select **Check link with QR Guardian**
+- Right-click a webpage link and select **Check link with Link Guardian**
 
 ### VirusTotal Integration
 
-QR Guardian checks for existing VirusTotal reports.
+Link Guardian checks for existing VirusTotal reports.
 
 It does not automatically submit unknown URLs for a new VirusTotal scan.
 
-If VirusTotal has no report for an exact normal URL, QR Guardian checks the website homepage report.
+If VirusTotal has no report for an exact normal URL, Link Guardian checks the website homepage report.
 
 Homepage fallback is disabled for URL-shortening services to prevent misleading results.
 
-When a VirusTotal report is available, QR Guardian displays:
+When a VirusTotal report is available, Link Guardian displays:
 
 - Malicious detections
 - Suspicious detections
@@ -46,7 +46,7 @@ When a VirusTotal report is available, QR Guardian displays:
 
 ### URL Shortener Analysis
 
-QR Guardian recognizes common shortening services, including:
+Link Guardian recognizes common shortening services, including:
 
 - `bit.ly`
 - `tinyurl.com`
@@ -61,7 +61,7 @@ QR Guardian recognizes common shortening services, including:
 - `tiny.cc`
 - `lnkd.in`
 
-For shortened links, QR Guardian:
+For shortened links, Link Guardian:
 
 - Resolves up to five redirects
 - Displays the final destination
@@ -74,7 +74,7 @@ For shortened links, QR Guardian:
 
 ### Local URL Heuristics
 
-QR Guardian warns when a URL:
+Link Guardian warns when a URL:
 
 - Uses an IP address instead of a domain
 - Contains punycode characters
@@ -88,12 +88,12 @@ QR Guardian warns when a URL:
 
 ### Extension Branding
 
-QR Guardian includes dedicated Chrome extension icons in the following sizes:
+Link Guardian includes dedicated Chrome extension icons in the following sizes:
 
-- 16 × 16
-- 32 × 32
-- 48 × 48
-- 128 × 128
+- 16 Ã— 16
+- 32 Ã— 32
+- 48 Ã— 48
+- 128 Ã— 128
 
 The icons are used in the Chrome toolbar, extension-management page, and extension metadata.
 
@@ -107,7 +107,7 @@ The **Open Website** button is available.
 
 ### Suspicious
 
-Shown in orange when QR Guardian detects warning signs, such as:
+Shown in orange when Link Guardian detects warning signs, such as:
 
 - A shortened URL
 - An unusual redirect chain
@@ -131,34 +131,34 @@ Shown in red when:
 - A redirect targets a private or unsupported destination
 - Another high-risk condition blocks opening
 
-QR Guardian does not display an open button for dangerous results.
+Link Guardian does not display an open button for dangerous results.
 
 ## Project Structure
 
 ```text
-QR-Guardian/
-│
-├── extension/
-│   ├── icons/
-│   │   ├── icon16.png
-│   │   ├── icon32.png
-│   │   ├── icon48.png
-│   │   └── icon128.png
-│   ├── background.js
-│   ├── manifest.json
-│   ├── popup.css
-│   ├── popup.html
-│   └── popup.js
-│
-├── worker/
-│   ├── src/
-│   │   └── index.js
-│   ├── package.json
-│   ├── package-lock.json
-│   └── wrangler.jsonc
-│
-├── .gitignore
-└── README.md
+Link-Guardian/
+â”‚
+â”œâ”€â”€ extension/
+â”‚   â”œâ”€â”€ icons/
+â”‚   â”‚   â”œâ”€â”€ icon16.png
+â”‚   â”‚   â”œâ”€â”€ icon32.png
+â”‚   â”‚   â”œâ”€â”€ icon48.png
+â”‚   â”‚   â””â”€â”€ icon128.png
+â”‚   â”œâ”€â”€ background.js
+â”‚   â”œâ”€â”€ manifest.json
+â”‚   â”œâ”€â”€ popup.css
+â”‚   â”œâ”€â”€ popup.html
+â”‚   â””â”€â”€ popup.js
+â”‚
+â”œâ”€â”€ worker/
+â”‚   â”œâ”€â”€ src/
+â”‚   â”‚   â””â”€â”€ index.js
+â”‚   â”œâ”€â”€ package.json
+â”‚   â”œâ”€â”€ package-lock.json
+â”‚   â””â”€â”€ wrangler.jsonc
+â”‚
+â”œâ”€â”€ .gitignore
+â””â”€â”€ README.md
 ```
 
 ## Development Requirements
@@ -187,17 +187,17 @@ chrome://extensions/
 5. Choose:
 
 ```text
-C:\Projects\QR-Guardian\extension
+C:\Projects\Link-Guardian\extension
 ```
 
-After modifying extension files, return to `chrome://extensions/` and reload QR Guardian.
+After modifying extension files, return to `chrome://extensions/` and reload Link Guardian.
 
 ## Cloudflare Worker Setup
 
 Install project dependencies:
 
 ```powershell
-cd C:\Projects\QR-Guardian\worker
+cd C:\Projects\Link-Guardian\worker
 npm install
 ```
 
@@ -226,7 +226,7 @@ Do not place the VirusTotal API key inside the Chrome extension or source code.
 Start the local Worker:
 
 ```powershell
-cd C:\Projects\QR-Guardian\worker
+cd C:\Projects\Link-Guardian\worker
 npx wrangler dev
 ```
 
@@ -241,7 +241,7 @@ http://127.0.0.1:8787
 Run a Cloudflare build validation without deploying:
 
 ```powershell
-cd C:\Projects\QR-Guardian\worker
+cd C:\Projects\Link-Guardian\worker
 npx wrangler deploy --dry-run
 ```
 
@@ -250,7 +250,7 @@ npx wrangler deploy --dry-run
 Deploy the Worker:
 
 ```powershell
-cd C:\Projects\QR-Guardian\worker
+cd C:\Projects\Link-Guardian\worker
 npx wrangler deploy
 ```
 
@@ -290,7 +290,7 @@ Invoke-RestMethod `
 Check repository status:
 
 ```powershell
-cd C:\Projects\QR-Guardian
+cd C:\Projects\Link-Guardian
 git status
 ```
 
@@ -315,7 +315,7 @@ git commit -m "Describe the completed change"
 - Redirect resolution is limited to five hops.
 - Redirect requests time out after five seconds.
 - Local and private redirect destinations are blocked.
-- Dangerous results cannot be opened through QR Guardian.
+- Dangerous results cannot be opened through Link Guardian.
 - Unknown URLs are not automatically submitted to VirusTotal.
 
 ## Planned Improvements
