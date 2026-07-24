@@ -347,3 +347,23 @@ button:disabled {
 #openButton.proceed:hover {
   background: #b45309;
 }
+@media (min-width: 700px) {
+  body {
+    width: auto;
+    min-height: 100vh;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    padding: 48px 20px;
+  }
+
+  .app {
+    width: 420px;
+    border: 1px solid #d8dee9;
+    border-radius: 18px;
+    background: #f8fafc;
+    box-shadow:
+      0 16px 45px
+      rgba(15, 23, 42, 0.1);
+  }
+}
