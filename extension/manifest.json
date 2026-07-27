@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Link Guardian",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Inspect links with VirusTotal, redirect analysis, and local URL security checks before opening them.",
   "permissions": [
     "contextMenus"

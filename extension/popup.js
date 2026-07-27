@@ -56,6 +56,14 @@ const apiEndpoint =
   "https://qr-guardian-api.qr-guardian-hari.workers.dev/v1/check";
 
 let approvedUrl = "";
+function placeOpenButtonNearResult() {
+  resultMessage.insertAdjacentElement(
+    "afterend",
+    openButton
+  );
+}
+
+placeOpenButtonNearResult();
 
 function normalizeUrlInput(value) {
   const trimmedValue = value.trim();
