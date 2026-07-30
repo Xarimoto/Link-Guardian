@@ -1,4 +1,4 @@
-# Link Guardian
+﻿# Link Guardian
 
 Link Guardian is a Chrome extension that inspects links before opening them.
 
@@ -90,10 +90,10 @@ Link Guardian warns when a URL:
 
 Link Guardian includes dedicated Chrome extension icons in the following sizes:
 
-- 16 Ã— 16
-- 32 Ã— 32
-- 48 Ã— 48
-- 128 Ã— 128
+- 16 Ãƒâ€” 16
+- 32 Ãƒâ€” 32
+- 48 Ãƒâ€” 48
+- 128 Ãƒâ€” 128
 
 The icons are used in the Chrome toolbar, extension-management page, and extension metadata.
 
@@ -135,35 +135,35 @@ Link Guardian does not display an open button for dangerous results.
 
 ## Project Structure
 
-Project Structure
-
+```text
 Link-Guardian/
-├── extension/
-│   ├── icons/
-│   │   ├── icon16.png
-│   │   ├── icon32.png
-│   │   ├── icon48.png
-│   │   └── icon128.png
-│   ├── background.js
-│   ├── manifest.json
-│   ├── popup.css
-│   ├── popup.html
-│   └── popup.js
-│
-├── privacy-site/
-│   ├── icon128.png
-│   └── index.html
-│
-├── worker/
-│   ├── src/
-│   │   └── index.js
-│   ├── package.json
-│   ├── package-lock.json
-│   └── wrangler.jsonc
-│
-├── .gitignore
-├── PRIVACY.md
-└── README.md
+|-- extension/
+|   |-- icons/
+|   |   |-- icon16.png
+|   |   |-- icon32.png
+|   |   |-- icon48.png
+|   |   `-- icon128.png
+|   |-- background.js
+|   |-- manifest.json
+|   |-- popup.css
+|   |-- popup.html
+|   `-- popup.js
+|
+|-- privacy-site/
+|   |-- icon128.png
+|   `-- index.html
+|
+|-- worker/
+|   |-- src/
+|   |   `-- index.js
+|   |-- package.json
+|   |-- package-lock.json
+|   `-- wrangler.jsonc
+|
+|-- .gitignore
+|-- PRIVACY.md
+`-- README.md
+```
 
 ## Development Requirements
 
@@ -336,3 +336,4 @@ Potential future improvements include:
 - Optional scan history
 - Chrome Web Store packaging
 - Shared backend support for a future iOS app
+
