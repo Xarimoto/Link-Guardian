@@ -4,6 +4,10 @@
   "Access-Control-Allow-Headers": "Content-Type"
 };
 
+import {
+  checkGoogleSafeBrowsing
+} from "./googleSafeBrowsing.js";
+
 const urlShortenerDomains = [
   "bit.ly",
   "tinyurl.com",
@@ -1194,6 +1198,21 @@ export default {
       let destinationVirusTotalResult =
         null;
 
+      let googleSafeBrowsingPromise =
+        null;
+
+      if (
+        !originalHeuristics
+          .usesUrlShortener
+      ) {
+        googleSafeBrowsingPromise =
+          checkGoogleSafeBrowsing(
+            checkedUrl.href,
+            env
+              .GOOGLE_SAFE_BROWSING_KEY
+          );
+      }
+
       const originalVirusTotalResult =
         await checkVirusTotal(
           checkedUrl.href,
@@ -1227,6 +1246,13 @@ export default {
               destinationUrl
             );
 
+          googleSafeBrowsingPromise =
+            checkGoogleSafeBrowsing(
+              destinationUrl.href,
+              env
+                .GOOGLE_SAFE_BROWSING_KEY
+            );
+
           destinationVirusTotalResult =
             await checkVirusTotal(
               destinationUrl.href,
@@ -1238,6 +1264,17 @@ export default {
               )
             );
         }
+      }
+
+      if (
+        !googleSafeBrowsingPromise
+      ) {
+        googleSafeBrowsingPromise =
+          checkGoogleSafeBrowsing(
+            destinationUrl.href,
+            env
+              .GOOGLE_SAFE_BROWSING_KEY
+          );
       }
 
       const redirectHeuristics =
@@ -1264,6 +1301,9 @@ export default {
           heuristicResult,
           redirectResolution
         );
+
+      const googleSafeBrowsingResult =
+        await googleSafeBrowsingPromise;
 
       return jsonResponse({
         status:
@@ -1297,7 +1337,9 @@ export default {
           virusTotalOriginal:
             originalVirusTotalResult,
           virusTotalDestination:
-            destinationVirusTotalResult
+            destinationVirusTotalResult,
+          googleSafeBrowsing:
+            googleSafeBrowsingResult
         }
       });
     }

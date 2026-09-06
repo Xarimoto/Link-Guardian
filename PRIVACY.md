@@ -1,11 +1,13 @@
 ﻿# Link Guardian Privacy Policy
 
 **Effective date:** July 23, 2026  
-**Last updated:** July 24, 2026
+**Last updated:** September 6, 2026
 
 Link Guardian is a Chrome extension developed and published by **Hari Bozhinov**.
 
 This Privacy Policy explains what information Link Guardian processes, why it is processed, how third-party services are involved, and the choices available to users.
+
+The online-provider and backend data practices described here also apply when the Link Guardian Android app uses the shared backend.
 
 ## 1. Overview
 
@@ -43,6 +45,7 @@ For shortened links, Link Guardian may also process:
 Link Guardian also processes security-analysis results, including:
 
 - VirusTotal reputation information
+- Google Safe Browsing threat matches and threat categories, when available
 - Malicious detection counts
 - Suspicious detection counts
 - Harmless and undetected counts
@@ -69,6 +72,7 @@ Link Guardian may use a submitted URL to:
 - Detect unusual redirect behavior
 - Detect redirects from HTTPS to HTTP
 - Retrieve an existing VirusTotal reputation report
+- Check a URL or its final resolved destination with Google Safe Browsing
 - Display a security verdict and related warnings
 - Determine which destination should be opened if the user chooses to continue
 
@@ -76,7 +80,11 @@ Source IP addresses are used only to apply rate limits and protect the public Li
 
 Link Guardian does not use submitted URLs or source IP addresses for advertising, behavioral profiling, marketing, or unrelated purposes.
 
-## 4. VirusTotal
+## 4. Online Reputation Providers
+
+Link Guardian may send submitted URLs or final resolved destination URLs, or URL-derived identifiers, to VirusTotal and Google Safe Browsing for online reputation and security checking. These checks send URL information, not camera images or video.
+
+### VirusTotal
 
 Link Guardian uses the VirusTotal API to retrieve existing URL reputation reports.
 
@@ -93,6 +101,14 @@ VirusTotal receives the URL information or URL-derived identifier required to lo
 
 VirusTotal is operated independently from Link Guardian. Link Guardian does not control VirusTotal's systems or policies.
 
+### Google Safe Browsing
+
+When configured, Link Guardian sends the complete URL being checked to Google Safe Browsing over HTTPS. When a supported shortened link is successfully resolved, it checks the final resolved destination URL; otherwise, it checks the submitted URL. The URL may include its path and query parameters, including any sensitive information they contain.
+
+Google Safe Browsing checks the URL against Google's threat information and may return threat matches and categories. Its result is kept separate from VirusTotal's report. An unavailable provider or a result with no matches does not guarantee that a URL is safe, and existing client versions may not display Google's result.
+
+Google may process this information according to its own terms, privacy policy, and data-retention practices. Google Safe Browsing is operated independently from Link Guardian.
+
 ## 5. Cloudflare
 
 Link Guardian's backend API runs on Cloudflare Workers.
@@ -108,6 +124,7 @@ Link Guardian's application code:
 - Has automatic Worker invocation logging disabled
 - Does not intentionally write user IP addresses to application logs or a database
 - Uses source IP addresses temporarily as rate-limit keys to prevent abuse
+- May temporarily cache successful Google Safe Browsing results using the Cloudflare Cache API, as described below
 
 The current rate limiter allows a limited number of URL checks during a 60-second period from the same source IP address.
 
@@ -135,7 +152,7 @@ Link Guardian does not intentionally retain:
 
 - Submitted URLs
 - Redirect chains
-- Scan results
+- Scan-history records
 - Browsing history
 - User profiles
 - User accounts
@@ -143,11 +160,13 @@ Link Guardian does not intentionally retain:
 
 Submitted URLs and security results are processed temporarily while the requested security check is performed.
 
+To avoid repeated Google requests, Link Guardian may temporarily cache successful Google Safe Browsing threat-match results for the shortest duration supplied for the matches, capped at 24 hours. No-match results are not cached because the Lookup API does not supply a cache duration for them. The cache contains the provider status, match indicator, and threat categories, indexed by a SHA-256 digest of the checked URL. It does not contain the plaintext URL or API keys. This cache is not a user scan history; a URL digest is not a guarantee of anonymity.
+
 Source IP addresses are temporarily processed through Cloudflare's rate-limiting system to enforce a 60-second request window. Link Guardian does not intentionally save those addresses in a scan-history database or custom application logs.
 
 Link Guardian does not provide a scan-history feature in its current version.
 
-Third-party service providers, including Cloudflare, VirusTotal, URL-shortening services, and destination websites, may process or retain information according to their own policies and operational requirements.
+Third-party service providers, including Cloudflare, VirusTotal, Google Safe Browsing, URL-shortening services, and destination websites, may process or retain information according to their own policies and operational requirements.
 
 ## 8. Personal Information
 
@@ -186,9 +205,9 @@ Data is transmitted only as necessary to perform the security analysis requested
 Link Guardian uses reasonable technical measures intended to protect submitted information, including:
 
 - HTTPS connections between the extension and the backend API
-- HTTPS connections to VirusTotal
-- Cloudflare Worker secrets for the VirusTotal API key
-- No VirusTotal API key stored inside the Chrome extension
+- HTTPS connections to VirusTotal and Google Safe Browsing
+- Cloudflare Worker secrets for the online-provider API keys
+- No online-provider API keys stored inside the Chrome extension or Android app
 - URL-length restrictions
 - HTTP and HTTPS protocol validation
 - Redirect-hop limits
